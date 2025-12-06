@@ -134,14 +134,14 @@ export default function Dashboard() {
       <button
         onClick={() => setIsGlucoseSheetOpen(true)}
         className={cn(
-          "fixed z-40 flex items-center justify-center",
+          "fixed z-50 flex items-center justify-center",
           "w-14 h-14 rounded-full",
           "bg-gradient-to-br from-purple-500 to-purple-700",
           "shadow-lg hover:shadow-xl",
           "transition-all duration-200 ease-out",
           "hover:scale-105 active:scale-95",
           "focus-ring",
-          "right-4 bottom-4",
+          "right-4 bottom-20",
           "md:right-6 md:bottom-6",
           // Safe area for mobile devices
           "pb-[env(safe-area-inset-bottom)]"
