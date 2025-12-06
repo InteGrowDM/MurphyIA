@@ -1,5 +1,15 @@
 export type UserRole = 'patient' | 'coadmin';
 
+// View modes for glucose history
+export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'quarterly';
+
+export const VIEW_MODE_LABELS: Record<ViewMode, string> = {
+  daily: 'Diario',
+  weekly: 'Semanal',
+  monthly: 'Mensual',
+  quarterly: 'Trimestral',
+};
+
 export type DiabetesType = 'Tipo 1' | 'Tipo 2' | 'Gestacional' | 'LADA' | 'MODY';
 
 // Expanded GlucometryType with mealtime-specific types + legacy support
