@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* ============================================
-   DIABETES DASHBOARD - DESIGN SYSTEM TOKENS
+   DIABETES DASHBOARD - HIG DESIGN SYSTEM
+   Apple Human Interface Guidelines Integration
    Dark Futuristic Purple Theme
    ============================================ */
 
@@ -11,7 +12,85 @@
 
 @layer base {
   :root {
-    /* Purple Palette */
+    /* ========================================
+       PHASE 0: FOUNDATION TOKENS (HIG #4 Consistency)
+       ======================================== */
+    
+    /* Spacing Scale (4px base grid) */
+    --space-0: 0px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Icon Sizes (standardized) */
+    --icon-sm: 16px;
+    --icon-md: 20px;
+    --icon-lg: 24px;
+    --icon-xl: 32px;
+
+    /* Touch Targets (HIG minimum 44px) */
+    --touch-target-min: 44px;
+    --touch-target-comfortable: 48px;
+    --touch-target-large: 56px;
+
+    /* ========================================
+       PHASE 1: TYPOGRAPHY (HIG #1 Clarity, #10 Legibility)
+       Responsive scaling with clamp()
+       ======================================== */
+    
+    --text-xs: clamp(0.6875rem, 0.65rem + 0.1vw, 0.75rem);
+    --text-sm: clamp(0.8125rem, 0.78rem + 0.1vw, 0.875rem);
+    --text-base: clamp(0.9375rem, 0.9rem + 0.1vw, 1rem);
+    --text-lg: clamp(1.0625rem, 1rem + 0.15vw, 1.125rem);
+    --text-xl: clamp(1.25rem, 1.15rem + 0.25vw, 1.375rem);
+    --text-2xl: clamp(1.5rem, 1.35rem + 0.4vw, 1.75rem);
+    --text-3xl: clamp(2rem, 1.75rem + 0.6vw, 2.5rem);
+
+    /* Line Heights (HIG optimized) */
+    --leading-tight: 1.2;
+    --leading-snug: 1.35;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.6;
+
+    /* ========================================
+       PHASE 1: ELEVATION SYSTEM (HIG #3 Depth)
+       ======================================== */
+    
+    --elevation-0: none;
+    --elevation-1: 0 1px 3px hsla(275, 85%, 4%, 0.12), 
+                   0 1px 2px hsla(275, 85%, 4%, 0.08);
+    --elevation-2: 0 4px 12px hsla(275, 85%, 4%, 0.15), 
+                   0 2px 4px hsla(275, 85%, 4%, 0.1);
+    --elevation-3: 0 12px 32px hsla(275, 85%, 4%, 0.2), 
+                   0 4px 8px hsla(275, 85%, 4%, 0.12);
+
+    /* ========================================
+       PHASE 1: ANIMATION TOKENS (HIG #9 Feedback)
+       ======================================== */
+    
+    --duration-instant: 100ms;
+    --duration-fast: 150ms;
+    --duration-normal: 200ms;
+    --duration-slow: 250ms;
+    --duration-slower: 300ms;
+
+    --ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ========================================
+       ORIGINAL: Purple Palette
+       ======================================== */
+    
     --purple-300: 280 100% 85%;
     --purple-400: 280 100% 77%;
     --purple-500: 273 100% 71%;
@@ -27,7 +106,10 @@
     --bg-dark-700: 275 60% 15%;
     --bg-dark-600: 275 50% 20%;
 
-    /* Semantic Colors */
+    /* ========================================
+       SEMANTIC COLORS
+       ======================================== */
+    
     --background: 275 85% 4%;
     --foreground: 0 0% 98%;
 
@@ -44,7 +126,8 @@
     --secondary-foreground: 0 0% 98%;
 
     --muted: 275 50% 12%;
-    --muted-foreground: 275 20% 60%;
+    /* PHASE 1: Improved contrast for WCAG AA (was 60%, now 70%) */
+    --muted-foreground: 275 15% 70%;
 
     --accent: 280 100% 77%;
     --accent-foreground: 275 85% 4%;
@@ -65,15 +148,23 @@
     --input: 275 40% 15%;
     --ring: 273 100% 71%;
 
-    --radius: 0.75rem;
-    --radius-lg: 1.5rem;
-    --radius-xl: 2rem;
+    /* Border Radius (HIG consistent corners) */
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
 
-    /* Glow Shadows */
-    --shadow-glow: 0 8px 30px hsla(273, 100%, 71%, 0.14), 
+    /* ========================================
+       PHASE 1: REFINED SHADOWS (HIG #2 Deference)
+       Reduced glow intensity - content is protagonist
+       ======================================== */
+    
+    /* Reduced from 0.14 to 0.06 for subtlety */
+    --shadow-glow: 0 8px 30px hsla(273, 100%, 71%, 0.06), 
                    inset 0 1px 0 hsla(0, 0%, 100%, 0.02);
-    --shadow-glow-intense: 0 0 40px hsla(273, 100%, 71%, 0.3),
-                           0 0 80px hsla(273, 100%, 71%, 0.15);
+    /* Reduced from 0.3/0.15 to 0.15/0.08 */
+    --shadow-glow-intense: 0 0 40px hsla(273, 100%, 71%, 0.15),
+                           0 0 80px hsla(273, 100%, 71%, 0.08);
     --shadow-card: 0 4px 24px hsla(275, 85%, 4%, 0.5),
                    0 1px 2px hsla(275, 85%, 4%, 0.3);
 
@@ -121,47 +212,102 @@
     @apply bg-background text-foreground;
     background: linear-gradient(180deg, hsl(var(--bg-dark-900)) 0%, hsl(var(--bg-dark-950)) 100%);
     min-height: 100vh;
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  /* HIG Typography Hierarchy */
+  h1 {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+    @apply font-bold tracking-tight;
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
     @apply font-semibold tracking-tight;
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+    @apply font-semibold;
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    @apply font-medium;
+  }
+
+  h5, h6 {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    @apply font-medium;
+  }
+
+  p {
+    line-height: var(--leading-normal);
+  }
+
+  small {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
   }
 }
 
 @layer components {
-  /* Glass Card Effect */
+  /* ========================================
+     PHASE 1: GLASS CARD (HIG #2 Deference, #3 Depth)
+     Refined: removed distracting radial gradient hover
+     ======================================== */
+  
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl border border-border/50;
+    @apply relative overflow-hidden border border-border/50;
+    border-radius: var(--radius-lg);
     background: linear-gradient(135deg, 
       hsla(275, 80%, 12%, 0.8) 0%, 
       hsla(275, 80%, 8%, 0.6) 100%);
-    backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--elevation-1);
+    transition: box-shadow var(--duration-normal) var(--ease-out);
   }
 
-  .glass-card::before {
+  .glass-card:hover {
+    box-shadow: var(--elevation-2);
+  }
+
+  /* Legacy support - will be phased out */
+  .glass-card-legacy::before {
     content: '';
-    @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+    @apply absolute inset-0 opacity-0 transition-opacity;
+    transition-duration: var(--duration-slow);
     background: radial-gradient(
       600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      hsla(273, 100%, 71%, 0.08),
+      hsla(273, 100%, 71%, 0.06),
       transparent 40%
     );
     pointer-events: none;
   }
 
-  .glass-card:hover::before {
+  .glass-card-legacy:hover::before {
     @apply opacity-100;
   }
 
-  /* Glow Effects */
+  /* ========================================
+     GLOW EFFECTS (HIG #2 Deference - reduced intensity)
+     ======================================== */
+  
   .glow-border {
     @apply relative;
   }
 
   .glow-border::after {
     content: '';
-    @apply absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300;
+    @apply absolute -inset-px opacity-0 transition-opacity;
+    transition-duration: var(--duration-normal);
+    border-radius: var(--radius-lg);
     background: var(--gradient-purple);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: xor;
@@ -170,82 +316,119 @@
   }
 
   .glow-border:hover::after {
-    @apply opacity-60;
+    @apply opacity-40;
   }
 
+  /* Only use for hero elements, logos */
   .glow-text {
-    text-shadow: 0 0 20px hsla(273, 100%, 71%, 0.5),
-                 0 0 40px hsla(273, 100%, 71%, 0.3);
+    text-shadow: 0 0 20px hsla(273, 100%, 71%, 0.4),
+                 0 0 40px hsla(273, 100%, 71%, 0.2);
   }
 
   .glow-icon {
-    filter: drop-shadow(0 0 8px hsla(273, 100%, 71%, 0.6));
+    filter: drop-shadow(0 0 6px hsla(273, 100%, 71%, 0.4));
   }
 
-  /* Neon Button */
+  /* ========================================
+     BUTTONS (HIG #5 Direct Manipulation, #9 Feedback)
+     ======================================== */
+  
   .btn-neon {
-    @apply relative px-6 py-3 rounded-xl font-semibold text-foreground;
+    @apply relative px-6 py-3 font-semibold text-foreground;
+    border-radius: var(--radius);
     background: var(--gradient-purple);
-    box-shadow: 0 4px 20px hsla(273, 100%, 71%, 0.4),
-                inset 0 1px 0 hsla(0, 0%, 100%, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px hsla(273, 100%, 71%, 0.25),
+                inset 0 1px 0 hsla(0, 0%, 100%, 0.15);
+    transition: all var(--duration-normal) var(--ease-out);
+    min-height: var(--touch-target-min);
   }
 
   .btn-neon:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsla(273, 100%, 71%, 0.5),
-                inset 0 1px 0 hsla(0, 0%, 100%, 0.3);
+    box-shadow: 0 8px 30px hsla(273, 100%, 71%, 0.35),
+                inset 0 1px 0 hsla(0, 0%, 100%, 0.2);
   }
 
   .btn-neon:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
   }
 
-  /* Status Indicators */
+  /* ========================================
+     PHASE 4: FOCUS & INTERACTION STATES
+     ======================================== */
+  
+  .focus-ring {
+    @apply outline-none;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .press-feedback {
+    transition: transform var(--duration-instant) var(--ease-out);
+  }
+
+  .press-feedback:active {
+    transform: scale(0.98);
+  }
+
+  /* ========================================
+     STATUS INDICATORS
+     ======================================== */
+  
   .status-critical {
     @apply bg-destructive/20 text-destructive border-destructive/30;
-    box-shadow: 0 0 12px hsla(0, 84%, 60%, 0.3);
+    box-shadow: 0 0 8px hsla(0, 84%, 60%, 0.2);
   }
 
   .status-warning {
     @apply bg-warning/20 text-warning border-warning/30;
-    box-shadow: 0 0 12px hsla(38, 92%, 50%, 0.3);
+    box-shadow: 0 0 8px hsla(38, 92%, 50%, 0.2);
   }
 
   .status-success {
     @apply bg-success/20 text-success border-success/30;
-    box-shadow: 0 0 12px hsla(142, 76%, 45%, 0.3);
+    box-shadow: 0 0 8px hsla(142, 76%, 45%, 0.2);
   }
 
   .status-info {
     @apply bg-info/20 text-info border-info/30;
-    box-shadow: 0 0 12px hsla(199, 89%, 48%, 0.3);
+    box-shadow: 0 0 8px hsla(199, 89%, 48%, 0.2);
   }
 
   /* Chart Container */
   .chart-container {
-    @apply relative p-4 rounded-2xl;
+    @apply relative p-4;
+    border-radius: var(--radius-lg);
     background: linear-gradient(135deg, 
       hsla(275, 80%, 10%, 0.5) 0%, 
       hsla(275, 80%, 6%, 0.3) 100%);
   }
 
-  /* Pulse Animation for Alerts */
+  /* ========================================
+     PULSE ANIMATION (HIG #2 - reduced intensity)
+     ======================================== */
+  
   .pulse-alert {
-    animation: pulse-glow 2s ease-in-out infinite;
+    animation: pulse-glow 3s ease-in-out infinite;
   }
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 5px hsla(0, 84%, 60%, 0.5);
+      box-shadow: 0 0 4px hsla(0, 84%, 60%, 0.3);
     }
     50% {
-      box-shadow: 0 0 20px hsla(0, 84%, 60%, 0.8),
-                  0 0 40px hsla(0, 84%, 60%, 0.4);
+      box-shadow: 0 0 12px hsla(0, 84%, 60%, 0.5),
+                  0 0 24px hsla(0, 84%, 60%, 0.25);
     }
   }
 
-  /* Scrollbar Styling */
+  /* ========================================
+     SCROLLBAR STYLING
+     ======================================== */
+  
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -264,29 +447,45 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--purple-600));
   }
+
+  /* ========================================
+     LOADING STATES (HIG #9 Feedback)
+     ======================================== */
+  
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2 border-muted border-t-primary;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-muted/50 rounded;
+  }
 }
 
 @layer utilities {
+  /* ========================================
+     ANIMATIONS (HIG #9 - refined timing)
+     ======================================== */
+  
   .animate-fade-up {
-    animation: fadeUp 0.5s ease-out forwards;
+    animation: fadeUp var(--duration-slow) var(--ease-out) forwards;
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn var(--duration-normal) var(--ease-out) forwards;
   }
 
   .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
+    animation: scaleIn var(--duration-normal) var(--ease-spring) forwards;
   }
 
   .animate-slide-right {
-    animation: slideRight 0.4s ease-out forwards;
+    animation: slideRight var(--duration-slow) var(--ease-out) forwards;
   }
 
   @keyframes fadeUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(12px);
     }
     to {
       opacity: 1;
@@ -302,7 +501,7 @@
   @keyframes scaleIn {
     from {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
     to {
       opacity: 1;
@@ -313,7 +512,7 @@
   @keyframes slideRight {
     from {
       opacity: 0;
-      transform: translateX(-20px);
+      transform: translateX(-16px);
     }
     to {
       opacity: 1;
@@ -321,9 +520,58 @@
     }
   }
 
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
+  /* Stagger delays */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+
+  /* ========================================
+     HIG UTILITY CLASSES
+     ======================================== */
+  
+  /* Touch target enforcement */
+  .touch-target {
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+  }
+
+  .touch-target-comfortable {
+    min-width: var(--touch-target-comfortable);
+    min-height: var(--touch-target-comfortable);
+  }
+
+  /* Elevation utilities */
+  .elevation-0 { box-shadow: var(--elevation-0); }
+  .elevation-1 { box-shadow: var(--elevation-1); }
+  .elevation-2 { box-shadow: var(--elevation-2); }
+  .elevation-3 { box-shadow: var(--elevation-3); }
+
+  /* Safe area for mobile notch */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+}
+
+/* ========================================
+   PHASE 1: REDUCED MOTION (HIG #8 User Control)
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .pulse-alert {
+    animation: none;
+  }
 }
