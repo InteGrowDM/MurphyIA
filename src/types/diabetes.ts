@@ -2,13 +2,72 @@ export type UserRole = 'patient' | 'coadmin';
 
 export type DiabetesType = 'Tipo 1' | 'Tipo 2' | 'Gestacional' | 'LADA' | 'MODY';
 
-export type GlucometryType = 'fasting' | 'preprandial' | 'postprandial' | 'random' | 'nocturnal';
+// Expanded GlucometryType with mealtime-specific types + legacy support
+export type GlucometryType = 
+  | 'before_breakfast' 
+  | 'after_breakfast'
+  | 'before_lunch' 
+  | 'after_lunch'
+  | 'before_dinner' 
+  | 'after_dinner'
+  // Legacy types for backward compatibility
+  | 'fasting' 
+  | 'preprandial' 
+  | 'postprandial'
+  | 'random' 
+  | 'nocturnal';
 
 export type InsulinType = 'rapid' | 'short' | 'intermediate' | 'basal' | 'mixed';
 
 export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 export type AlertType = 'hypoglycemia' | 'hyperglycemia' | 'missed_dose' | 'pattern' | 'streak' | 'reminder';
+
+// Labels in Spanish for each glucometry type
+export const GLUCOMETRY_LABELS: Record<GlucometryType, string> = {
+  before_breakfast: 'Antes del desayuno',
+  after_breakfast: 'Después del desayuno',
+  before_lunch: 'Antes del almuerzo',
+  after_lunch: 'Después del almuerzo',
+  before_dinner: 'Antes de la cena',
+  after_dinner: 'Después de la cena',
+  // Legacy labels
+  fasting: 'En ayunas',
+  preprandial: 'Preprandial',
+  postprandial: 'Postprandial',
+  random: 'Aleatorio',
+  nocturnal: 'Nocturno',
+};
+
+// Glucose ranges for color coding
+export const GLUCOSE_RANGES = {
+  critical_low: 54,
+  low: 70,
+  normal: { min: 70, max: 140 },
+  preprandial: { min: 70, max: 130 },
+  postprandial: { max: 180 },
+  high: 180,
+  critical_high: 250,
+} as const;
+
+// The 6 meal time slots for daily tracking
+export const MEAL_TIME_SLOTS = [
+  { type: 'before_breakfast' as GlucometryType, label: 'Antes del desayuno', icon: 'Sunrise', period: 'breakfast' },
+  { type: 'after_breakfast' as GlucometryType, label: 'Después del desayuno', icon: 'Coffee', period: 'breakfast' },
+  { type: 'before_lunch' as GlucometryType, label: 'Antes del almuerzo', icon: 'Sun', period: 'lunch' },
+  { type: 'after_lunch' as GlucometryType, label: 'Después del almuerzo', icon: 'Utensils', period: 'lunch' },
+  { type: 'before_dinner' as GlucometryType, label: 'Antes de la cena', icon: 'Sunset', period: 'dinner' },
+  { type: 'after_dinner' as GlucometryType, label: 'Después de la cena', icon: 'Moon', period: 'dinner' },
+] as const;
+
+// Helper to get glucose status
+export function getGlucoseStatus(value: number): 'critical_low' | 'low' | 'normal' | 'high' | 'critical_high' {
+  if (value < GLUCOSE_RANGES.critical_low) return 'critical_low';
+  if (value < GLUCOSE_RANGES.low) return 'low';
+  if (value <= GLUCOSE_RANGES.high) return 'normal';
+  if (value <= GLUCOSE_RANGES.critical_high) return 'high';
+  return 'critical_high';
+}
 
 export interface Glucometry {
   id: string;

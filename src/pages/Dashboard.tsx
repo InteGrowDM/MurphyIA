@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PatientCard } from '@/components/dashboard/PatientCard';
@@ -5,14 +6,17 @@ import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+import { GlucoseLogSheet } from '@/components/glucose/GlucoseLogSheet';
+import { useGlucoseLog } from '@/hooks/useGlucoseLog';
 import { UserRole, Patient } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
-import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
+import { Activity, TrendingUp, Flame, AlertTriangle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const location = useLocation();
   const userRole = (location.state?.role as UserRole) || 'patient';
+  const [isGlucoseSheetOpen, setIsGlucoseSheetOpen] = useState(false);
 
   // Get mock data
   const patients = mockData.patients as Patient[];
@@ -22,6 +26,9 @@ export default function Dashboard() {
   const userName = userRole === 'coadmin' 
     ? mockData.coadmins[0].name 
     : currentPatient.name;
+
+  // Glucose log hook
+  const { todayRecords, addRecord, updateRecord } = useGlucoseLog(currentPatient.glucometrias);
 
   // Stats cards data - simplified for patient/coadmin
   const stats = [
@@ -122,6 +129,37 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setIsGlucoseSheetOpen(true)}
+        className={cn(
+          "fixed z-40 flex items-center justify-center",
+          "w-14 h-14 rounded-full",
+          "bg-gradient-to-br from-purple-500 to-purple-700",
+          "shadow-lg hover:shadow-xl",
+          "transition-all duration-200 ease-out",
+          "hover:scale-105 active:scale-95",
+          "focus-ring",
+          "right-4 bottom-4",
+          "md:right-6 md:bottom-6",
+          // Safe area for mobile devices
+          "pb-[env(safe-area-inset-bottom)]"
+        )}
+        aria-label="Agregar registro de glucosa"
+      >
+        <Plus className="w-6 h-6 text-white" aria-hidden="true" />
+      </button>
+
+      {/* Glucose Log Sheet */}
+      <GlucoseLogSheet
+        open={isGlucoseSheetOpen}
+        onOpenChange={setIsGlucoseSheetOpen}
+        patientName={currentPatient.name}
+        todayRecords={todayRecords}
+        onAddRecord={addRecord}
+        onUpdateRecord={updateRecord}
+      />
     </DashboardLayout>
   );
 }
