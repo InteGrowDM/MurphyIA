@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, Stethoscope, ArrowRight, Zap, Shield, Bot, type LucideIcon } from 'lucide-react';
+import { Activity, Users, ArrowRight, Zap, Shield, Bot, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
 
@@ -30,13 +30,6 @@ const Index = () => {
       description: 'Acompaña a un paciente en su seguimiento diario.',
       icon: Users,
       color: 'from-info to-cyan-400'
-    },
-    {
-      role: 'doctor',
-      label: 'Médico',
-      description: 'Gestiona pacientes con CRM inteligente e IA.',
-      icon: Stethoscope,
-      color: 'from-success to-emerald-400'
     }
   ];
 
@@ -103,8 +96,8 @@ const Index = () => {
           </h2>
           
           <p className="text-hig-lg md:text-hig-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-2 leading-hig-normal">
-            Plataforma inteligente para el seguimiento de diabetes con integración Telegram, 
-            análisis de IA y CRM médico avanzado.
+            Plataforma inteligente para el seguimiento de diabetes con integración Telegram 
+            y análisis de IA personalizado.
           </p>
 
           {/* Features */}
@@ -125,13 +118,13 @@ const Index = () => {
         </div>
 
         {/* Role Selection */}
-        <div className="w-full max-w-4xl mx-auto animate-fade-up stagger-4">
+        <div className="w-full max-w-3xl mx-auto animate-fade-up stagger-4">
           <p className="text-center text-muted-foreground mb-6 text-hig-base" id="role-selection-label">
             Selecciona tu rol para continuar
           </p>
           
           <div 
-            className="grid md:grid-cols-3 gap-4 mb-8"
+            className="grid md:grid-cols-2 gap-4 mb-8"
             role="radiogroup"
             aria-labelledby="role-selection-label"
           >

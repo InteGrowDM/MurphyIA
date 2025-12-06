@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Users, 
   Activity, 
   Bell, 
   Settings, 
@@ -35,29 +34,27 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// HIG Phase 2: Grouped navigation for familiar structure
+// Simplified navigation for patient and coadmin only
 const navGroups: NavGroup[] = [
   {
     label: 'Principal',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['patient', 'coadmin', 'doctor'] },
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['patient', 'coadmin'] },
       { label: 'Glucometrías', href: '/glucometrias', icon: Activity, roles: ['patient', 'coadmin'] },
-      { label: 'Pacientes', href: '/pacientes', icon: Users, roles: ['doctor'] },
-      { label: 'CRM IA', href: '/crm', icon: Bot, roles: ['doctor'] },
     ]
   },
   {
     label: 'Comunicación',
     items: [
-      { label: 'Shaun Murphy IA', href: '/ai', icon: Stethoscope, roles: ['patient', 'coadmin', 'doctor'] },
-      { label: 'Telegram', href: '/telegram', icon: MessageCircle, roles: ['patient', 'coadmin', 'doctor'] },
-      { label: 'Alertas', href: '/alertas', icon: Bell, roles: ['patient', 'coadmin', 'doctor'] },
+      { label: 'Shaun Murphy IA', href: '/ai', icon: Stethoscope, roles: ['patient', 'coadmin'] },
+      { label: 'Telegram', href: '/telegram', icon: MessageCircle, roles: ['patient', 'coadmin'] },
+      { label: 'Alertas', href: '/alertas', icon: Bell, roles: ['patient', 'coadmin'] },
     ]
   },
   {
     label: 'Sistema',
     items: [
-      { label: 'Configuración', href: '/configuracion', icon: Settings, roles: ['patient', 'coadmin', 'doctor'] },
+      { label: 'Configuración', href: '/configuracion', icon: Settings, roles: ['patient', 'coadmin'] },
     ]
   }
 ];
@@ -77,13 +74,11 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
   const roleLabels: Record<UserRole, string> = {
     patient: 'Paciente',
     coadmin: 'Co-administrador',
-    doctor: 'Médico',
   };
 
   const roleColors: Record<UserRole, string> = {
     patient: 'bg-purple-500/20 text-purple-400',
     coadmin: 'bg-info/20 text-info',
-    doctor: 'bg-success/20 text-success',
   };
 
   const handleCloseSidebar = () => setSidebarOpen(false);
