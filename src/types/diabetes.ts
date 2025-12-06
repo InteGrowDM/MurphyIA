@@ -1,4 +1,4 @@
-export type UserRole = 'patient' | 'coadmin' | 'doctor';
+export type UserRole = 'patient' | 'coadmin';
 
 export type DiabetesType = 'Tipo 1' | 'Tipo 2' | 'Gestacional' | 'LADA' | 'MODY';
 
@@ -58,7 +58,6 @@ export interface Patient {
   avatar: string | null;
   telegramConnected: boolean;
   coadminId: string | null;
-  doctorId: string;
   xpLevel: number;
   streak: number;
   glucometrias: Glucometry[];
@@ -73,13 +72,6 @@ export interface Coadmin {
   name: string;
   patientId: string;
   telegramConnected: boolean;
-}
-
-export interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  patientCount: number;
 }
 
 export interface AIReportSummary {
@@ -103,6 +95,5 @@ export interface AIReport {
 export interface MockData {
   patients: Patient[];
   coadmins: Coadmin[];
-  doctors: Doctor[];
   aiReports: AIReport[];
 }

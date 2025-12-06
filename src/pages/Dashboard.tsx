@@ -3,12 +3,11 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PatientCard } from '@/components/dashboard/PatientCard';
 import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
-import { CRMList } from '@/components/dashboard/CRMList';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { UserRole, Patient } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
-import { Activity, TrendingUp, Users, AlertTriangle } from 'lucide-react';
+import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
@@ -17,22 +16,14 @@ export default function Dashboard() {
 
   // Get mock data
   const patients = mockData.patients as Patient[];
-  const aiReports = mockData.aiReports;
   
   // For demo, use first patient as current user
   const currentPatient = patients[0];
-  const userName = userRole === 'doctor' 
-    ? mockData.doctors[0].name 
-    : userRole === 'coadmin' 
-      ? mockData.coadmins[0].name 
-      : currentPatient.name;
+  const userName = userRole === 'coadmin' 
+    ? mockData.coadmins[0].name 
+    : currentPatient.name;
 
-  const criticalCount = patients.reduce(
-    (acc, p) => acc + p.alertas.filter(a => a.severity === 'critical' && !a.resolved).length, 
-    0
-  );
-
-  // Stats cards data
+  // Stats cards data - simplified for patient/coadmin
   const stats = [
     {
       label: 'Última glucosa',
@@ -49,15 +40,15 @@ export default function Dashboard() {
       bgColor: 'bg-success/20'
     },
     {
-      label: userRole === 'doctor' ? 'Pacientes activos' : 'Días en racha',
-      value: userRole === 'doctor' ? patients.length.toString() : `${currentPatient.streak}`,
-      icon: Users,
-      color: 'text-info',
-      bgColor: 'bg-info/20'
+      label: 'Días en racha',
+      value: `${currentPatient.streak}`,
+      icon: Flame,
+      color: 'text-warning',
+      bgColor: 'bg-warning/20'
     },
     {
-      label: 'Alertas críticas',
-      value: userRole === 'doctor' ? criticalCount.toString() : currentPatient.alertas.filter(a => a.severity === 'critical' && !a.resolved).length.toString(),
+      label: 'Alertas activas',
+      value: currentPatient.alertas.filter(a => !a.resolved).length.toString(),
       icon: AlertTriangle,
       color: 'text-destructive',
       bgColor: 'bg-destructive/20'
@@ -69,12 +60,10 @@ export default function Dashboard() {
       {/* Page Header */}
       <header className="mb-6">
         <h1 className="text-hig-2xl md:text-hig-3xl font-bold text-foreground mb-2 leading-hig-tight">
-          {userRole === 'doctor' ? 'CRM Médico' : 'Mi Dashboard'}
+          Mi Dashboard
         </h1>
         <p className="text-muted-foreground text-hig-base leading-hig-normal">
-          {userRole === 'doctor' 
-            ? 'Gestiona tus pacientes con inteligencia artificial' 
-            : 'Bienvenido de vuelta. Aquí tienes tu resumen del día.'}
+          Bienvenido de vuelta. Aquí tienes tu resumen del día.
         </p>
       </header>
 
@@ -107,48 +96,32 @@ export default function Dashboard() {
         ))}
       </section>
 
-      {/* Role-specific content */}
-      {userRole === 'doctor' ? (
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <CRMList 
-              patients={patients} 
-              aiReports={aiReports as any}
-            />
-          </div>
-          <div className="space-y-6">
-            <AlertsPanel 
-              alerts={patients.flatMap(p => p.alertas)}
-            />
-          </div>
+      {/* Main content grid */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left Column - Charts & Data */}
+        <div className="lg:col-span-2 space-y-6">
+          <GlucoseChart data={currentPatient.glucometrias} />
+          
+          {userRole === 'coadmin' && (
+            <PatientCard patient={currentPatient} />
+          )}
         </div>
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Charts & Data */}
-          <div className="lg:col-span-2 space-y-6">
-            <GlucoseChart data={currentPatient.glucometrias} />
-            
-            {userRole === 'coadmin' && (
-              <PatientCard patient={currentPatient} />
-            )}
-          </div>
 
-          {/* Right Column - Tracking & XP */}
-          <div className="space-y-6">
-            <XPDonut 
-              xpLevel={currentPatient.xpLevel} 
-              streak={currentPatient.streak}
-            />
-            
-            <HabitTrackerCard />
-            
-            <AlertsPanel 
-              alerts={currentPatient.alertas}
-              compact
-            />
-          </div>
+        {/* Right Column - Tracking & XP */}
+        <div className="space-y-6">
+          <XPDonut 
+            xpLevel={currentPatient.xpLevel} 
+            streak={currentPatient.streak}
+          />
+          
+          <HabitTrackerCard />
+          
+          <AlertsPanel 
+            alerts={currentPatient.alertas}
+            compact
+          />
         </div>
-      )}
+      </div>
     </DashboardLayout>
   );
 }

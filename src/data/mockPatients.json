@@ -9,7 +9,6 @@
       "avatar": null,
       "telegramConnected": true,
       "coadminId": "ca001",
-      "doctorId": "d001",
       "xpLevel": 78,
       "streak": 12,
       "glucometrias": [
@@ -47,7 +46,6 @@
       "avatar": null,
       "telegramConnected": true,
       "coadminId": "ca002",
-      "doctorId": "d001",
       "xpLevel": 45,
       "streak": 5,
       "glucometrias": [
@@ -81,7 +79,6 @@
       "avatar": null,
       "telegramConnected": false,
       "coadminId": null,
-      "doctorId": "d001",
       "xpLevel": 92,
       "streak": 28,
       "glucometrias": [
@@ -115,7 +112,6 @@
       "avatar": null,
       "telegramConnected": true,
       "coadminId": "ca003",
-      "doctorId": "d001",
       "xpLevel": 34,
       "streak": 2,
       "glucometrias": [
@@ -148,7 +144,6 @@
       "avatar": null,
       "telegramConnected": true,
       "coadminId": "ca004",
-      "doctorId": "d002",
       "xpLevel": 67,
       "streak": 15,
       "glucometrias": [
@@ -174,10 +169,6 @@
     { "id": "ca002", "name": "Laura Rodríguez", "patientId": "p002", "telegramConnected": true },
     { "id": "ca003", "name": "Miguel Fernández", "patientId": "p004", "telegramConnected": false },
     { "id": "ca004", "name": "Pedro Gómez", "patientId": "p005", "telegramConnected": true }
-  ],
-  "doctors": [
-    { "id": "d001", "name": "Dr. Alejandro Mendoza", "specialty": "Endocrinología", "patientCount": 4 },
-    { "id": "d002", "name": "Dra. Patricia Vargas", "specialty": "Ginecología - Diabetes Gestacional", "patientCount": 1 }
   ],
   "aiReports": [
     {
