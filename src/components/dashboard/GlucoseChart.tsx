@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart } from 'recharts';
 import { Glucometry } from '@/types/diabetes';
 import { cn } from '@/lib/utils';
+import { Activity, TrendingUp } from 'lucide-react';
 
 interface GlucoseChartProps {
   data: Glucometry[];
@@ -39,77 +40,101 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
     };
   }, [data]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const isHigh = data.value > 180;
       const isLow = data.value < 70;
       
       return (
-        <div className="glass-card p-3 border border-border/50">
-          <p className="text-xs text-muted-foreground mb-1">{data.date} - {data.time}</p>
+        <div className="bg-card/95 backdrop-blur-sm p-3 rounded-hig border border-border/50 elevation-2">
+          <p className="text-hig-xs text-muted-foreground mb-1">{data.date} - {data.time}</p>
           <p className={cn(
-            "text-lg font-bold",
+            "text-hig-lg font-bold",
             isHigh ? "text-destructive" : isLow ? "text-warning" : "text-success"
           )}>
             {data.value} mg/dL
           </p>
-          <p className="text-xs text-muted-foreground capitalize">{data.type}</p>
+          <p className="text-hig-xs text-muted-foreground capitalize">{data.type}</p>
         </div>
       );
     }
     return null;
   };
 
+  // HIG: Empty state
+  if (data.length === 0) {
+    return (
+      <section className={cn("glass-card p-5 animate-fade-up", className)} aria-labelledby="glucose-chart-title">
+        <div className="flex items-center justify-between mb-4">
+          <h3 id="glucose-chart-title" className="font-semibold text-hig-lg text-foreground leading-hig-tight">Tendencia Glucémica</h3>
+        </div>
+        <div className="h-64 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mb-4">
+            <Activity className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+          </div>
+          <p className="text-foreground font-medium text-hig-base">Sin datos de glucosa</p>
+          <p className="text-hig-sm text-muted-foreground mt-1 max-w-xs">
+            Registra tus mediciones para ver la tendencia aquí
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <div className={cn("glass-card glow-border p-5 animate-fade-up", className)}>
+    <section 
+      className={cn("glass-card p-5 animate-fade-up", className)}
+      aria-labelledby="glucose-chart-title"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-lg text-foreground">Tendencia Glucémica</h3>
+        <h3 id="glucose-chart-title" className="font-semibold text-hig-lg text-foreground leading-hig-tight">Tendencia Glucémica</h3>
         <div className="flex items-center gap-4">
           {showTargetRange && (
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-success/50" />
-              <span className="text-xs text-muted-foreground">70-180 mg/dL</span>
+              <div className="w-3 h-3 rounded-full bg-success/50" aria-hidden="true" />
+              <span className="text-hig-xs text-muted-foreground">70-180 mg/dL</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="text-center p-2 rounded-lg bg-secondary/30">
-          <p className="text-2xl font-bold text-foreground">{stats.avg}</p>
-          <p className="text-xs text-muted-foreground">Promedio</p>
+      <div className="grid grid-cols-4 gap-3 mb-6" role="list" aria-label="Estadísticas de glucosa">
+        <div className="text-center p-2 rounded-hig bg-secondary/30" role="listitem">
+          <p className="text-hig-2xl font-bold text-foreground leading-hig-tight">{stats.avg}</p>
+          <p className="text-hig-xs text-muted-foreground">Promedio</p>
         </div>
-        <div className="text-center p-2 rounded-lg bg-secondary/30">
-          <p className="text-2xl font-bold text-warning">{stats.min}</p>
-          <p className="text-xs text-muted-foreground">Mínimo</p>
+        <div className="text-center p-2 rounded-hig bg-secondary/30" role="listitem">
+          <p className="text-hig-2xl font-bold text-warning leading-hig-tight">{stats.min}</p>
+          <p className="text-hig-xs text-muted-foreground">Mínimo</p>
         </div>
-        <div className="text-center p-2 rounded-lg bg-secondary/30">
-          <p className="text-2xl font-bold text-destructive">{stats.max}</p>
-          <p className="text-xs text-muted-foreground">Máximo</p>
+        <div className="text-center p-2 rounded-hig bg-secondary/30" role="listitem">
+          <p className="text-hig-2xl font-bold text-destructive leading-hig-tight">{stats.max}</p>
+          <p className="text-hig-xs text-muted-foreground">Máximo</p>
         </div>
-        <div className="text-center p-2 rounded-lg bg-secondary/30">
-          <p className="text-2xl font-bold text-success">{stats.inRange}%</p>
-          <p className="text-xs text-muted-foreground">En rango</p>
+        <div className="text-center p-2 rounded-hig bg-secondary/30" role="listitem">
+          <p className="text-hig-2xl font-bold text-success leading-hig-tight">{stats.inRange}%</p>
+          <p className="text-hig-xs text-muted-foreground">En rango</p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="h-64">
+      <div className="h-64" role="img" aria-label="Gráfico de tendencia de glucosa">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="glucoseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(273, 100%, 71%)" stopOpacity={0.3}/>
+                <stop offset="5%" stopColor="hsl(273, 100%, 71%)" stopOpacity={0.2}/>
                 <stop offset="95%" stopColor="hsl(273, 100%, 71%)" stopOpacity={0}/>
               </linearGradient>
             </defs>
             
+            {/* HIG: Subtler grid lines */}
             <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="hsl(275, 40%, 18%)" 
+              strokeDasharray="4 4" 
+              stroke="hsl(275, 40%, 15%)" 
               vertical={false}
             />
             
@@ -118,30 +143,30 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
                 <ReferenceLine 
                   y={180} 
                   stroke="hsl(0, 84%, 60%)" 
-                  strokeDasharray="5 5" 
-                  strokeOpacity={0.5}
+                  strokeDasharray="6 4" 
+                  strokeOpacity={0.4}
                 />
                 <ReferenceLine 
                   y={70} 
                   stroke="hsl(38, 92%, 50%)" 
-                  strokeDasharray="5 5" 
-                  strokeOpacity={0.5}
+                  strokeDasharray="6 4" 
+                  strokeOpacity={0.4}
                 />
               </>
             )}
             
             <XAxis 
               dataKey="time" 
-              tick={{ fill: 'hsl(275, 20%, 60%)', fontSize: 11 }}
-              tickLine={{ stroke: 'hsl(275, 40%, 18%)' }}
-              axisLine={{ stroke: 'hsl(275, 40%, 18%)' }}
+              tick={{ fill: 'hsl(275, 15%, 70%)', fontSize: 11 }}
+              tickLine={{ stroke: 'hsl(275, 40%, 15%)' }}
+              axisLine={{ stroke: 'hsl(275, 40%, 15%)' }}
             />
             
             <YAxis 
               domain={[40, 300]}
-              tick={{ fill: 'hsl(275, 20%, 60%)', fontSize: 11 }}
-              tickLine={{ stroke: 'hsl(275, 40%, 18%)' }}
-              axisLine={{ stroke: 'hsl(275, 40%, 18%)' }}
+              tick={{ fill: 'hsl(275, 15%, 70%)', fontSize: 11 }}
+              tickLine={{ stroke: 'hsl(275, 40%, 15%)' }}
+              axisLine={{ stroke: 'hsl(275, 40%, 15%)' }}
             />
             
             <Tooltip content={<CustomTooltip />} />
@@ -157,7 +182,7 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
               type="monotone"
               dataKey="value"
               stroke="hsl(273, 100%, 71%)"
-              strokeWidth={3}
+              strokeWidth={2.5}
               dot={(props: any) => {
                 const { cx, cy, payload } = props;
                 const isHigh = payload.value > 180;
@@ -168,25 +193,23 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
                   <circle 
                     cx={cx} 
                     cy={cy} 
-                    r={5} 
+                    r={4} 
                     fill={color}
                     stroke="hsl(275, 85%, 4%)"
                     strokeWidth={2}
-                    style={{ filter: `drop-shadow(0 0 4px ${color})` }}
                   />
                 );
               }}
               activeDot={{
-                r: 8,
+                r: 6,
                 fill: 'hsl(273, 100%, 71%)',
                 stroke: 'hsl(275, 85%, 4%)',
                 strokeWidth: 2,
-                style: { filter: 'drop-shadow(0 0 8px hsl(273, 100%, 71%))' }
               }}
             />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, Stethoscope, ArrowRight, Zap, Shield, Bot } from 'lucide-react';
+import { Activity, Users, Stethoscope, ArrowRight, Zap, Shield, Bot, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
+
+interface RoleOption {
+  role: UserRole;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+}
 
 const Index = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
-  const roles: { role: UserRole; label: string; description: string; icon: typeof Activity; color: string }[] = [
+  const roles: RoleOption[] = [
     {
       role: 'patient',
       label: 'Paciente',
@@ -38,95 +46,119 @@ const Index = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent, role: UserRole) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSelectedRole(role);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-[128px]" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/15 rounded-full blur-[128px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-700/10 rounded-full blur-[100px]" />
+    <div className="min-h-screen flex flex-col safe-area-inset">
+      {/* Hero Background - HIG: reduced blur for performance */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/15 rounded-full blur-[80px]" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[80px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-700/8 rounded-full blur-[60px]" />
       </div>
+
+      {/* Skip link for accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-hig"
+      >
+        Saltar al contenido principal
+      </a>
 
       {/* Header */}
       <header className="relative z-10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-purple flex items-center justify-center shadow-glow">
-              <Activity className="w-6 h-6 text-foreground glow-icon" />
+            <div className="w-10 h-10 rounded-hig bg-gradient-purple flex items-center justify-center elevation-1">
+              <Activity className="w-[var(--icon-lg)] h-[var(--icon-lg)] text-foreground" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-foreground glow-text">DiabetesManager</h1>
-              <span className="text-xs text-muted-foreground">Pro Edition</span>
+              <h1 className="font-bold text-hig-lg text-foreground leading-hig-tight">DiabetesManager</h1>
+              <span className="text-hig-xs text-muted-foreground">Pro Edition</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <main id="main-content" className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="max-w-4xl mx-auto text-center mb-12">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6 animate-fade-up">
-            <Bot className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-purple-400">Potenciado por Shaun Murphy IA</span>
+            <Bot className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-purple-400" aria-hidden="true" />
+            <span className="text-hig-sm text-purple-400">Potenciado por Shaun Murphy IA</span>
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4 animate-fade-up stagger-1">
+          <h2 className="text-hig-3xl md:text-[clamp(2.5rem,5vw,4rem)] font-bold text-foreground mb-4 animate-fade-up stagger-1 leading-hig-tight">
             Tu salud,{' '}
-            <span className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent glow-text">
+            <span className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent">
               bajo control
             </span>
-          </h1>
+          </h2>
           
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-2">
+          <p className="text-hig-lg md:text-hig-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-2 leading-hig-normal">
             Plataforma inteligente para el seguimiento de diabetes con integración Telegram, 
             análisis de IA y CRM médico avanzado.
           </p>
 
           {/* Features */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-12 animate-fade-up stagger-3">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50">
-              <Zap className="w-4 h-4 text-warning" />
-              <span className="text-sm text-muted-foreground">Tiempo real</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-12 animate-fade-up stagger-3" role="list" aria-label="Características">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50" role="listitem">
+              <Zap className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-warning" aria-hidden="true" />
+              <span className="text-hig-sm text-muted-foreground">Tiempo real</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50">
-              <Shield className="w-4 h-4 text-success" />
-              <span className="text-sm text-muted-foreground">Datos seguros</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50" role="listitem">
+              <Shield className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-success" aria-hidden="true" />
+              <span className="text-hig-sm text-muted-foreground">Datos seguros</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50">
-              <Bot className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-muted-foreground">Análisis IA</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50" role="listitem">
+              <Bot className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-purple-400" aria-hidden="true" />
+              <span className="text-hig-sm text-muted-foreground">Análisis IA</span>
             </div>
           </div>
         </div>
 
         {/* Role Selection */}
         <div className="w-full max-w-4xl mx-auto animate-fade-up stagger-4">
-          <p className="text-center text-muted-foreground mb-6">
+          <p className="text-center text-muted-foreground mb-6 text-hig-base" id="role-selection-label">
             Selecciona tu rol para continuar
           </p>
           
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div 
+            className="grid md:grid-cols-3 gap-4 mb-8"
+            role="radiogroup"
+            aria-labelledby="role-selection-label"
+          >
             {roles.map(({ role, label, description, icon: Icon, color }) => (
               <button
                 key={role}
+                role="radio"
+                aria-checked={selectedRole === role}
+                tabIndex={0}
                 onClick={() => setSelectedRole(role)}
+                onKeyDown={(e) => handleKeyDown(e, role)}
                 className={cn(
-                  "glass-card glow-border p-6 text-left transition-all duration-300",
-                  "hover:scale-[1.02] hover:shadow-glow-intense",
-                  selectedRole === role && "ring-2 ring-purple-500 shadow-glow-intense"
+                  "glass-card p-6 text-left",
+                  "transition-all duration-hig-fast ease-hig-out",
+                  "hover:shadow-elevation-2 focus-ring press-feedback",
+                  selectedRole === role && "ring-2 ring-primary elevation-2"
                 )}
               >
                 <div className={cn(
-                  "w-14 h-14 rounded-2xl flex items-center justify-center mb-4",
-                  "bg-gradient-to-br shadow-glow",
+                  "w-14 h-14 rounded-hig-lg flex items-center justify-center mb-4",
+                  "bg-gradient-to-br elevation-1",
                   color
                 )}>
-                  <Icon className="w-7 h-7 text-foreground" />
+                  <Icon className="w-7 h-7 text-foreground" aria-hidden="true" />
                 </div>
-                <h3 className="font-semibold text-lg text-foreground mb-2">{label}</h3>
-                <p className="text-sm text-muted-foreground">{description}</p>
+                <h3 className="font-semibold text-hig-lg text-foreground mb-2 leading-hig-tight">{label}</h3>
+                <p className="text-hig-sm text-muted-foreground leading-hig-normal">{description}</p>
               </button>
             ))}
           </div>
@@ -136,13 +168,14 @@ const Index = () => {
             <button
               onClick={handleContinue}
               disabled={!selectedRole}
+              aria-disabled={!selectedRole}
               className={cn(
-                "btn-neon flex items-center gap-2 px-8 py-4 text-lg",
-                !selectedRole && "opacity-50 cursor-not-allowed"
+                "btn-neon flex items-center gap-2 px-8 py-4 text-hig-lg focus-ring",
+                !selectedRole && "opacity-50 cursor-not-allowed pointer-events-none"
               )}
             >
               Continuar
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-[var(--icon-md)] h-[var(--icon-md)]" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -150,7 +183,7 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="relative z-10 px-6 py-4 border-t border-border/50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
+        <div className="max-w-6xl mx-auto flex items-center justify-between text-hig-sm text-muted-foreground">
           <p>© 2024 DiabetesManager Pro</p>
           <p>Versión 1.0.0 - Beta</p>
         </div>

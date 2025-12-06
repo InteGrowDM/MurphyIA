@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   Activity, 
   Moon, 
@@ -6,14 +6,15 @@ import {
   Brain,
   Check,
   Plus,
-  Calendar
+  Calendar,
+  type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HabitItem {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
   completed: boolean;
@@ -101,106 +102,132 @@ export function HabitTrackerCard({
   const completedCount = localHabits.filter(h => h.completed).length;
   const progress = (completedCount / localHabits.length) * 100;
 
-  const handleToggle = (id: string) => {
+  const handleToggle = useCallback((id: string) => {
     setLocalHabits(prev => 
       prev.map(h => h.id === id ? { ...h, completed: !h.completed } : h)
     );
     onToggle?.(id);
-  };
+  }, [onToggle]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleToggle(id);
+    }
+  }, [handleToggle]);
 
   return (
-    <div className="glass-card glow-border overflow-hidden animate-fade-up">
+    <section 
+      className="glass-card overflow-hidden animate-fade-up"
+      aria-labelledby="habit-tracker-title"
+    >
       {/* Header */}
       <div className="p-5 border-b border-border/50">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-lg text-foreground">Seguimiento Diario</h3>
+            <h3 id="habit-tracker-title" className="font-semibold text-hig-lg text-foreground leading-hig-tight">
+              Seguimiento Diario
+            </h3>
             <div className="flex items-center gap-2 mt-1">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground capitalize">{date}</span>
+              <Calendar className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-muted-foreground" aria-hidden="true" />
+              <span className="text-hig-sm text-muted-foreground capitalize">{date}</span>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-foreground">{completedCount}/{localHabits.length}</p>
-            <p className="text-xs text-muted-foreground">completados</p>
+          <div className="text-right" aria-label={`${completedCount} de ${localHabits.length} completados`}>
+            <p className="text-hig-2xl font-bold text-foreground leading-hig-tight">{completedCount}/{localHabits.length}</p>
+            <p className="text-hig-xs text-muted-foreground">completados</p>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+        {/* Progress Bar - HIG: thinner, 6px */}
+        <div 
+          className="relative h-1.5 bg-muted rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Progreso diario"
+        >
           <div 
-            className="absolute inset-y-0 left-0 bg-gradient-purple rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-          <div 
-            className="absolute inset-y-0 left-0 bg-gradient-purple rounded-full blur-sm opacity-50 transition-all duration-500 ease-out"
+            className="absolute inset-y-0 left-0 bg-gradient-purple rounded-full transition-all duration-hig-slow ease-hig-out"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* Habits List */}
-      <div className="p-5 space-y-3">
+      <ul className="p-5 space-y-2" role="list" aria-label="Lista de hábitos">
         {localHabits.map((habit, index) => {
           const Icon = habit.icon;
           return (
-            <div 
+            <li 
               key={habit.id}
+              role="listitem"
+              tabIndex={0}
+              aria-checked={habit.completed}
+              onKeyDown={(e) => handleKeyDown(e, habit.id)}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl transition-all duration-300",
-                "hover:bg-secondary/30 cursor-pointer group",
+                "flex items-center gap-3 p-3 rounded-hig cursor-pointer",
+                "transition-all duration-hig-fast ease-hig-out",
+                "hover:bg-secondary/30 focus-ring press-feedback",
+                "min-h-[var(--touch-target-comfortable)]",
                 habit.completed ? "bg-secondary/20" : "bg-transparent"
               )}
-              style={{ animationDelay: `${index * 0.05}s` }}
+              style={{ animationDelay: `${index * 0.03}s` }}
               onClick={() => handleToggle(habit.id)}
             >
               {/* Icon */}
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
+                "w-10 h-10 rounded-hig flex items-center justify-center shrink-0",
+                "transition-shadow duration-hig-fast",
                 habit.bgColor,
-                habit.completed && "shadow-glow"
+                habit.completed && "elevation-1"
               )}>
-                <Icon className={cn("w-5 h-5", habit.color)} />
+                <Icon className={cn("w-[var(--icon-md)] h-[var(--icon-md)]", habit.color)} aria-hidden="true" />
               </div>
 
               {/* Label & Value */}
               <div className="flex-1 min-w-0">
                 <p className={cn(
-                  "font-medium transition-colors",
+                  "font-medium text-hig-base transition-colors duration-hig-fast",
                   habit.completed ? "text-foreground" : "text-muted-foreground"
                 )}>
                   {habit.label}
                 </p>
                 {habit.value && (
-                  <p className="text-sm text-muted-foreground">{habit.value}</p>
+                  <p className="text-hig-sm text-muted-foreground">{habit.value}</p>
                 )}
               </div>
 
-              {/* Action Button */}
+              {/* Action Button - HIG: 44px touch target */}
               <div className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300",
+                "w-10 h-10 rounded-hig flex items-center justify-center",
+                "transition-all duration-hig-normal ease-hig-spring",
                 habit.completed 
                   ? "bg-success/20 text-success" 
                   : "bg-muted text-muted-foreground group-hover:bg-purple-500/20 group-hover:text-purple-400"
               )}>
                 {habit.completed ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-[var(--icon-md)] h-[var(--icon-md)] animate-scale-in" aria-label="Completado" />
                 ) : (
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-[var(--icon-md)] h-[var(--icon-md)]" aria-label="Marcar como completado" />
                 )}
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       {/* Footer */}
       <div className="px-5 pb-5">
-        <button className="w-full btn-neon flex items-center justify-center gap-2">
-          <Plus className="w-4 h-4" />
+        <button 
+          className="w-full btn-neon flex items-center justify-center gap-2 focus-ring"
+          aria-label="Agregar nuevo registro"
+        >
+          <Plus className="w-[var(--icon-sm)] h-[var(--icon-sm)]" aria-hidden="true" />
           Agregar registro
         </button>
       </div>
-    </div>
+    </section>
   );
 }

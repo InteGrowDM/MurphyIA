@@ -1,4 +1,4 @@
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PatientCard } from '@/components/dashboard/PatientCard';
 import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
@@ -9,6 +9,7 @@ import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { UserRole, Patient } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
 import { Activity, TrendingUp, Users, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const location = useLocation();
@@ -66,37 +67,45 @@ export default function Dashboard() {
   return (
     <DashboardLayout userRole={userRole} userName={userName}>
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+      <header className="mb-6">
+        <h1 className="text-hig-2xl md:text-hig-3xl font-bold text-foreground mb-2 leading-hig-tight">
           {userRole === 'doctor' ? 'CRM Médico' : 'Mi Dashboard'}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-hig-base leading-hig-normal">
           {userRole === 'doctor' 
             ? 'Gestiona tus pacientes con inteligencia artificial' 
             : 'Bienvenido de vuelta. Aquí tienes tu resumen del día.'}
         </p>
-      </div>
+      </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Stats Grid - HIG: consistent spacing */}
+      <section 
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+        role="list"
+        aria-label="Estadísticas principales"
+      >
         {stats.map((stat, index) => (
-          <div 
+          <article 
             key={stat.label}
-            className="glass-card glow-border p-4 animate-fade-up"
-            style={{ animationDelay: `${index * 0.1}s` }}
+            role="listitem"
+            className="glass-card p-4 animate-fade-up"
+            style={{ animationDelay: `${index * 0.05}s` }}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              <div className={cn(
+                "w-10 h-10 rounded-hig flex items-center justify-center",
+                stat.bgColor
+              )}>
+                <stat.icon className={cn("w-[var(--icon-md)] h-[var(--icon-md)]", stat.color)} aria-hidden="true" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-                <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-hig-xs text-muted-foreground">{stat.label}</p>
+                <p className="text-hig-xl font-bold text-foreground leading-hig-tight">{stat.value}</p>
               </div>
             </div>
-          </div>
+          </article>
         ))}
-      </div>
+      </section>
 
       {/* Role-specific content */}
       {userRole === 'doctor' ? (

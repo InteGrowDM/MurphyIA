@@ -27,7 +27,7 @@ export function XPDonut({
     if (animate) {
       const timer = setTimeout(() => {
         setAnimatedProgress(progress);
-      }, 300);
+      }, 200);
       return () => clearTimeout(timer);
     } else {
       setAnimatedProgress(progress);
@@ -43,13 +43,21 @@ export function XPDonut({
   };
 
   return (
-    <div className="glass-card glow-border p-6 animate-fade-up">
+    <section 
+      className="glass-card p-6 animate-fade-up"
+      aria-labelledby="xp-donut-title"
+    >
       <div className="flex flex-col lg:flex-row items-center gap-6">
         {/* Donut Chart */}
-        <div className="relative">
+        <div 
+          className="relative"
+          role="img"
+          aria-label={`Nivel XP: ${animatedProgress.toFixed(0)}%`}
+        >
           <svg 
             className="w-36 h-36 transform -rotate-90"
             viewBox="0 0 100 100"
+            aria-hidden="true"
           >
             {/* Background Circle */}
             <circle
@@ -61,7 +69,7 @@ export function XPDonut({
               strokeWidth="8"
             />
             
-            {/* Progress Circle */}
+            {/* Progress Circle - HIG: reduced glow */}
             <circle
               cx="50"
               cy="50"
@@ -72,9 +80,9 @@ export function XPDonut({
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-1000 ease-out"
+              className="transition-all duration-hig-slower ease-hig-out"
               style={{
-                filter: 'drop-shadow(0 0 8px hsl(273 100% 71% / 0.6))'
+                filter: 'drop-shadow(0 0 4px hsl(273 100% 71% / 0.3))'
               }}
             />
 
@@ -88,78 +96,85 @@ export function XPDonut({
             </defs>
           </svg>
 
-          {/* Center Content */}
+          {/* Center Content - HIG: removed glow-text for legibility */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Zap className="w-6 h-6 text-purple-400 glow-icon mb-1" />
-            <span className="text-3xl font-bold text-foreground glow-text">
+            <Zap className="w-[var(--icon-lg)] h-[var(--icon-lg)] text-purple-400 mb-1" aria-hidden="true" />
+            <span className="text-hig-3xl font-bold text-foreground leading-hig-tight">
               {animatedProgress.toFixed(0)}%
             </span>
-            <span className="text-xs text-muted-foreground">XP Level</span>
+            <span className="text-hig-xs text-muted-foreground">XP Level</span>
           </div>
         </div>
 
         {/* Stats */}
         <div className="flex-1 space-y-4">
           <div>
-            <h3 className="font-semibold text-lg text-foreground mb-1">
+            <h3 id="xp-donut-title" className="font-semibold text-hig-lg text-foreground mb-1 leading-hig-tight">
               {getLevelTitle(xpLevel)}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-hig-sm text-muted-foreground leading-hig-normal">
               ¡Continúa así para subir de nivel!
             </p>
           </div>
 
           {/* XP Progress */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-hig-sm">
               <span className="text-muted-foreground">Progreso XP</span>
               <span className="text-foreground font-medium">{currentXP} / {nextLevelXP}</span>
             </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-1.5 bg-muted rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={currentXP}
+              aria-valuemin={0}
+              aria-valuemax={nextLevelXP}
+              aria-label="Progreso hacia siguiente nivel"
+            >
               <div 
-                className="h-full bg-gradient-purple rounded-full transition-all duration-1000"
+                className="h-full bg-gradient-purple rounded-full transition-all duration-hig-slower ease-hig-out"
                 style={{ width: `${(currentXP / nextLevelXP) * 100}%` }}
               />
             </div>
           </div>
 
           {/* Streak & Awards */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="glass-card p-3 rounded-xl">
+          <div className="grid grid-cols-2 gap-3" role="list" aria-label="Logros">
+            <div className="bg-secondary/30 p-3 rounded-hig" role="listitem">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
-                  <span className="text-lg">🔥</span>
+                <div className="w-8 h-8 rounded-hig bg-warning/20 flex items-center justify-center">
+                  <span className="text-lg" aria-hidden="true">🔥</span>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Racha</p>
-                  <p className="font-semibold text-foreground">{streak} días</p>
+                  <p className="text-hig-xs text-muted-foreground">Racha</p>
+                  <p className="font-semibold text-foreground text-hig-sm">{streak} días</p>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card p-3 rounded-xl">
+            <div className="bg-secondary/30 p-3 rounded-hig" role="listitem">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                  <Award className="w-4 h-4 text-success" />
+                <div className="w-8 h-8 rounded-hig bg-success/20 flex items-center justify-center">
+                  <Award className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-success" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Logros</p>
-                  <p className="font-semibold text-foreground">12 obtenidos</p>
+                  <p className="text-hig-xs text-muted-foreground">Logros</p>
+                  <p className="font-semibold text-foreground text-hig-sm">12 obtenidos</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Next Reward */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <TrendingUp className="w-5 h-5 text-purple-400" />
+          <div className="flex items-center gap-3 p-3 rounded-hig bg-purple-500/10 border border-purple-500/20">
+            <TrendingUp className="w-[var(--icon-md)] h-[var(--icon-md)] text-purple-400 shrink-0" aria-hidden="true" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Próxima recompensa</p>
-              <p className="text-xs text-muted-foreground">Logra 85% para desbloquear "Control Premium"</p>
+              <p className="text-hig-sm font-medium text-foreground">Próxima recompensa</p>
+              <p className="text-hig-xs text-muted-foreground">Logra 85% para desbloquear "Control Premium"</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
