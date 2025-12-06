@@ -20,6 +20,39 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      // HIG Spacing Scale (4px base)
+      spacing: {
+        'hig-1': 'var(--space-1)',
+        'hig-2': 'var(--space-2)',
+        'hig-3': 'var(--space-3)',
+        'hig-4': 'var(--space-4)',
+        'hig-5': 'var(--space-5)',
+        'hig-6': 'var(--space-6)',
+        'hig-8': 'var(--space-8)',
+        'hig-10': 'var(--space-10)',
+        'hig-12': 'var(--space-12)',
+        'hig-16': 'var(--space-16)',
+        'touch-min': 'var(--touch-target-min)',
+        'touch-comfortable': 'var(--touch-target-comfortable)',
+        'touch-large': 'var(--touch-target-large)',
+      },
+      // HIG Font Sizes (responsive clamp)
+      fontSize: {
+        'hig-xs': 'var(--text-xs)',
+        'hig-sm': 'var(--text-sm)',
+        'hig-base': 'var(--text-base)',
+        'hig-lg': 'var(--text-lg)',
+        'hig-xl': 'var(--text-xl)',
+        'hig-2xl': 'var(--text-2xl)',
+        'hig-3xl': 'var(--text-3xl)',
+      },
+      // HIG Line Heights
+      lineHeight: {
+        'hig-tight': 'var(--leading-tight)',
+        'hig-snug': 'var(--leading-snug)',
+        'hig-normal': 'var(--leading-normal)',
+        'hig-relaxed': 'var(--leading-relaxed)',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -101,6 +134,10 @@ export default {
         },
       },
       borderRadius: {
+        'hig-sm': 'var(--radius-sm)',
+        'hig': 'var(--radius)',
+        'hig-lg': 'var(--radius-lg)',
+        'hig-xl': 'var(--radius-xl)',
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -111,6 +148,26 @@ export default {
         glow: "var(--shadow-glow)",
         "glow-intense": "var(--shadow-glow-intense)",
         card: "var(--shadow-card)",
+        // HIG Elevation System
+        'elevation-0': 'var(--elevation-0)',
+        'elevation-1': 'var(--elevation-1)',
+        'elevation-2': 'var(--elevation-2)',
+        'elevation-3': 'var(--elevation-3)',
+      },
+      // HIG Animation Timing
+      transitionDuration: {
+        'hig-instant': 'var(--duration-instant)',
+        'hig-fast': 'var(--duration-fast)',
+        'hig-normal': 'var(--duration-normal)',
+        'hig-slow': 'var(--duration-slow)',
+        'hig-slower': 'var(--duration-slower)',
+      },
+      transitionTimingFunction: {
+        'hig-default': 'var(--ease-default)',
+        'hig-spring': 'var(--ease-spring)',
+        'hig-out': 'var(--ease-out)',
+        'hig-in': 'var(--ease-in)',
+        'hig-in-out': 'var(--ease-in-out)',
       },
       keyframes: {
         "accordion-down": {
