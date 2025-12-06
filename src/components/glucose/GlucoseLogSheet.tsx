@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { GlucoseSlotCard } from './GlucoseSlotCard';
-import { GlucoseInputDialog } from './GlucoseInputDialog';
+import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { Glucometry, GlucometryType, MEAL_TIME_SLOTS } from '@/types/diabetes';
 import { Activity, History } from 'lucide-react';
 import { format } from 'date-fns';
@@ -140,10 +140,11 @@ export function GlucoseLogSheet({
 
       {/* Input Dialog */}
       {selectedSlot && (
-        <GlucoseInputDialog
+        <DailyLogInputDialog
           open={!!selectedSlot}
           onOpenChange={(open) => !open && setSelectedSlot(null)}
-          type={selectedSlot.type}
+          type="glucose"
+          glucometryType={selectedSlot.type}
           initialValue={selectedSlot.record?.value}
           onSave={handleSaveRecord}
         />

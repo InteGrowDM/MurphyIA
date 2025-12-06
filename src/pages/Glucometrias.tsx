@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { GlucoseSlotCard } from '@/components/glucose/GlucoseSlotCard';
-import { GlucoseInputDialog } from '@/components/glucose/GlucoseInputDialog';
+import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { ViewModeSelector } from '@/components/glucose/ViewModeSelector';
 import { WeeklyView } from '@/components/glucose/WeeklyView';
 import { MonthlyView } from '@/components/glucose/MonthlyView';
@@ -282,10 +282,11 @@ export default function Glucometrias() {
 
       {/* Input Dialog - only for daily view */}
       {selectedSlot && (
-        <GlucoseInputDialog
+        <DailyLogInputDialog
           open={!!selectedSlot}
           onOpenChange={(open) => !open && setSelectedSlot(null)}
-          type={selectedSlot.type}
+          type="glucose"
+          glucometryType={selectedSlot.type}
           initialValue={selectedSlot.record?.value}
           onSave={handleSaveRecord}
         />
