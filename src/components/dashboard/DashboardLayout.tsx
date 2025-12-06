@@ -89,31 +89,15 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header - HIG: 56px height (iOS standard) */}
+      {/* Mobile Header - Simplified (nav is in bottom bar) */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 glass-card border-b border-border/50 px-4 safe-area-inset">
-        <div className="flex items-center justify-between h-full">
-          <button
-            onClick={handleOpenSidebar}
-            aria-label="Abrir menú de navegación"
-            className="touch-target flex items-center justify-center rounded-hig hover:bg-secondary/50 transition-colors duration-hig-fast ease-hig-out focus-ring press-feedback"
-          >
-            <Menu className="w-[var(--icon-lg)] h-[var(--icon-lg)] text-foreground" />
-          </button>
-          
+        <div className="flex items-center justify-center h-full">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-hig bg-gradient-purple flex items-center justify-center">
               <span className="text-sm font-bold text-foreground">DM</span>
             </div>
             <span className="font-semibold text-foreground">DiabetesManager</span>
           </div>
-
-          <button 
-            aria-label="Ver notificaciones"
-            className="touch-target flex items-center justify-center rounded-hig hover:bg-secondary/50 transition-colors duration-hig-fast ease-hig-out focus-ring press-feedback relative"
-          >
-            <Bell className="w-[var(--icon-lg)] h-[var(--icon-lg)] text-foreground" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" aria-label="Notificaciones nuevas" />
-          </button>
         </div>
       </header>
 
