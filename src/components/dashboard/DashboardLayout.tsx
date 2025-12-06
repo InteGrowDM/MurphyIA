@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -62,6 +64,7 @@ const navGroups: NavGroup[] = [
 export function DashboardLayout({ children, userRole, userName }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Filter groups and items based on user role
   const filteredNavGroups = navGroups
@@ -260,7 +263,8 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
       <main 
         className={cn(
           "min-h-screen pt-14 lg:pt-0 lg:pl-72",
-          "transition-all duration-hig-slow ease-hig-out"
+          "transition-all duration-hig-slow ease-hig-out",
+          isMobile && "pb-20"
         )}
         id="main-content"
       >
@@ -268,6 +272,9 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && <MobileBottomNav />}
     </div>
   );
 }

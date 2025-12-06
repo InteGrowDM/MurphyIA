@@ -459,6 +459,32 @@
   .skeleton {
     @apply animate-pulse bg-muted/50 rounded;
   }
+
+  /* ========================================
+     TIKTOK-STYLE BUTTON (Mobile Nav)
+     ======================================== */
+  
+  .tiktok-button {
+    background: linear-gradient(135deg, #00f7ef 0%, hsl(var(--purple-500)) 100%);
+    padding: 2px;
+    border-radius: 14px;
+    transition: transform var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
+  }
+  
+  .tiktok-button:active {
+    transform: scale(0.95);
+  }
+  
+  .tiktok-button-inner {
+    background: hsl(var(--foreground));
+    border-radius: 12px;
+  }
+
+  /* Safe area for bottom nav */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
 }
 
 @layer utilities {
