@@ -1,15 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { 
   AlertTriangle, 
   Clock, 
   TrendingDown, 
   TrendingUp,
   ChevronRight,
-  Filter,
   Search,
   Bot,
   Phone,
-  MessageCircle
+  MessageCircle,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Patient, AIReport } from '@/types/diabetes';
@@ -18,6 +18,7 @@ interface CRMListProps {
   patients: Patient[];
   aiReports?: AIReport[];
   onPatientClick?: (patientId: string) => void;
+  isLoading?: boolean;
 }
 
 type PriorityLevel = 'critical' | 'high' | 'medium' | 'low';
@@ -28,57 +29,75 @@ interface EnrichedPatient extends Patient {
   lastContact?: string;
 }
 
-export function CRMList({ patients, aiReports = [], onPatientClick }: CRMListProps) {
+// Skeleton loader component
+function PatientSkeleton() {
+  return (
+    <div className="p-4 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-hig bg-muted/50" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-32 bg-muted/50 rounded" />
+          <div className="h-3 w-24 bg-muted/50 rounded" />
+          <div className="h-12 w-full bg-muted/30 rounded-hig" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CRMList({ patients, aiReports = [], onPatientClick, isLoading = false }: CRMListProps) {
   const [filter, setFilter] = useState<PriorityLevel | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Enrich patients with priority and AI insights
-  const enrichedPatients: EnrichedPatient[] = patients.map(patient => {
-    const criticalAlerts = patient.alertas.filter(a => a.severity === 'critical' && !a.resolved);
-    const warningAlerts = patient.alertas.filter(a => a.severity === 'warning' && !a.resolved);
-    const report = aiReports.find(r => r.patientId === patient.id);
+  // HIG Phase 3: Memoize enriched patients for performance
+  const enrichedPatients = useMemo<EnrichedPatient[]>(() => {
+    return patients.map(patient => {
+      const criticalAlerts = patient.alertas.filter(a => a.severity === 'critical' && !a.resolved);
+      const warningAlerts = patient.alertas.filter(a => a.severity === 'warning' && !a.resolved);
+      const report = aiReports.find(r => r.patientId === patient.id);
 
-    let priority: PriorityLevel = 'low';
-    let aiInsight = '';
+      let priority: PriorityLevel = 'low';
+      let aiInsight = '';
 
-    if (criticalAlerts.length > 0) {
-      priority = 'critical';
-      aiInsight = criticalAlerts[0].message;
-    } else if (warningAlerts.length > 0 || (report?.summary.trend === 'deteriorating')) {
-      priority = 'high';
-      aiInsight = report?.recommendations[0] || warningAlerts[0]?.message || '';
-    } else if (patient.streak < 3 || patient.xpLevel < 40) {
-      priority = 'medium';
-      aiInsight = 'Adherencia baja al tratamiento. Requiere seguimiento.';
-    } else {
-      aiInsight = 'Control estable. Mantener seguimiento regular.';
-    }
+      if (criticalAlerts.length > 0) {
+        priority = 'critical';
+        aiInsight = criticalAlerts[0].message;
+      } else if (warningAlerts.length > 0 || (report?.summary.trend === 'deteriorating')) {
+        priority = 'high';
+        aiInsight = report?.recommendations[0] || warningAlerts[0]?.message || '';
+      } else if (patient.streak < 3 || patient.xpLevel < 40) {
+        priority = 'medium';
+        aiInsight = 'Adherencia baja al tratamiento. Requiere seguimiento.';
+      } else {
+        aiInsight = 'Control estable. Mantener seguimiento regular.';
+      }
 
-    return {
-      ...patient,
-      priority,
-      aiInsight,
-      lastContact: '2 días atrás'
+      return {
+        ...patient,
+        priority,
+        aiInsight,
+        lastContact: '2 días atrás'
+      };
+    });
+  }, [patients, aiReports]);
+
+  // Sort and filter
+  const filteredPatients = useMemo(() => {
+    const priorityOrder: Record<PriorityLevel, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3
     };
-  });
 
-  // Sort by priority
-  const priorityOrder: Record<PriorityLevel, number> = {
-    critical: 0,
-    high: 1,
-    medium: 2,
-    low: 3
-  };
-
-  const sortedPatients = [...enrichedPatients].sort(
-    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
-  );
-
-  const filteredPatients = sortedPatients.filter(p => {
-    const matchesFilter = filter === 'all' || p.priority === filter;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+    return [...enrichedPatients]
+      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
+      .filter(p => {
+        const matchesFilter = filter === 'all' || p.priority === filter;
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesFilter && matchesSearch;
+      });
+  }, [enrichedPatients, filter, searchQuery]);
 
   const priorityConfig: Record<PriorityLevel, { label: string; color: string; bgColor: string; icon: typeof AlertTriangle }> = {
     critical: { label: 'Crítico', color: 'text-destructive', bgColor: 'bg-destructive/20', icon: AlertTriangle },
@@ -87,55 +106,79 @@ export function CRMList({ patients, aiReports = [], onPatientClick }: CRMListPro
     low: { label: 'Bajo', color: 'text-success', bgColor: 'bg-success/20', icon: TrendingDown },
   };
 
-  const priorityCounts = {
+  const priorityCounts = useMemo(() => ({
     all: enrichedPatients.length,
     critical: enrichedPatients.filter(p => p.priority === 'critical').length,
     high: enrichedPatients.filter(p => p.priority === 'high').length,
     medium: enrichedPatients.filter(p => p.priority === 'medium').length,
     low: enrichedPatients.filter(p => p.priority === 'low').length,
-  };
+  }), [enrichedPatients]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, patientId: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onPatientClick?.(patientId);
+    }
+  }, [onPatientClick]);
 
   return (
-    <div className="glass-card glow-border overflow-hidden animate-fade-up">
+    <section 
+      className="glass-card overflow-hidden animate-fade-up"
+      aria-labelledby="crm-list-title"
+    >
       {/* Header */}
       <div className="p-5 border-b border-border/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-purple flex items-center justify-center shadow-glow">
-              <Bot className="w-5 h-5 text-foreground" />
+            <div className="w-10 h-10 rounded-hig bg-gradient-purple flex items-center justify-center elevation-1">
+              <Bot className="w-[var(--icon-md)] h-[var(--icon-md)] text-foreground" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground">CRM Médico IA</h3>
-              <p className="text-sm text-muted-foreground">Priorizado por Shaun Murphy</p>
+              <h3 id="crm-list-title" className="font-semibold text-hig-lg text-foreground leading-hig-tight">CRM Médico IA</h3>
+              <p className="text-hig-sm text-muted-foreground">Priorizado por Shaun Murphy</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-foreground">{priorityCounts.critical}</span>
-            <span className="text-sm text-destructive">críticos</span>
+            <span className="text-hig-2xl font-bold text-foreground">{priorityCounts.critical}</span>
+            <span className="text-hig-sm text-destructive">críticos</span>
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search - HIG: subtle border, clear focus */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[var(--icon-sm)] h-[var(--icon-sm)] text-muted-foreground" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
             placeholder="Buscar paciente..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-secondary/50 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+            aria-label="Buscar paciente"
+            className={cn(
+              "w-full pl-10 pr-4 py-2.5 rounded-hig text-hig-base",
+              "bg-secondary/30 border border-border/30 text-foreground placeholder:text-muted-foreground",
+              "transition-all duration-hig-fast",
+              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
+            )}
           />
         </div>
 
-        {/* Priority Filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        {/* Priority Filters - HIG: compact pills, horizontal scroll */}
+        <div 
+          className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
+          role="tablist"
+          aria-label="Filtrar por prioridad"
+        >
           <button
+            role="tab"
+            aria-selected={filter === 'all'}
             onClick={() => setFilter('all')}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all",
+              "px-3 py-1.5 rounded-hig text-hig-sm font-medium whitespace-nowrap",
+              "transition-all duration-hig-fast focus-ring press-feedback",
+              "min-h-[var(--touch-target-min)]",
               filter === 'all' 
-                ? "bg-gradient-purple text-foreground shadow-glow" 
-                : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                ? "bg-gradient-purple text-foreground elevation-1" 
+                : "bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
             Todos ({priorityCounts.all})
@@ -145,15 +188,19 @@ export function CRMList({ patients, aiReports = [], onPatientClick }: CRMListPro
             return (
               <button
                 key={key}
+                role="tab"
+                aria-selected={filter === key}
                 onClick={() => setFilter(key)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5",
+                  "px-3 py-1.5 rounded-hig text-hig-sm font-medium whitespace-nowrap",
+                  "transition-all duration-hig-fast focus-ring press-feedback",
+                  "min-h-[var(--touch-target-min)] flex items-center gap-1.5",
                   filter === key 
                     ? `${config.bgColor} ${config.color} border border-current` 
-                    : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                    : "bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
               >
-                <config.icon className="w-3.5 h-3.5" />
+                <config.icon className="w-3.5 h-3.5" aria-hidden="true" />
                 {config.label} ({priorityCounts[key]})
               </button>
             );
@@ -162,84 +209,131 @@ export function CRMList({ patients, aiReports = [], onPatientClick }: CRMListPro
       </div>
 
       {/* Patient List */}
-      <div className="divide-y divide-border/50 max-h-[500px] overflow-y-auto">
-        {filteredPatients.map((patient, index) => {
-          const config = priorityConfig[patient.priority];
-          const PriorityIcon = config.icon;
-          
-          return (
-            <div
-              key={patient.id}
-              onClick={() => onPatientClick?.(patient.id)}
-              className={cn(
-                "p-4 hover:bg-secondary/30 cursor-pointer transition-all duration-200 group",
-                patient.priority === 'critical' && "bg-destructive/5"
-              )}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className="flex items-start gap-3">
-                {/* Priority Indicator */}
-                <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                  config.bgColor,
-                  patient.priority === 'critical' && "animate-pulse"
-                )}>
-                  <PriorityIcon className={cn("w-5 h-5", config.color)} />
-                </div>
-
-                {/* Patient Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-foreground truncate">{patient.name}</h4>
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-xs font-medium",
-                      config.bgColor, config.color
-                    )}>
-                      {config.label}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {patient.diabetesType} • {patient.age} años
-                  </p>
-
-                  {/* AI Insight */}
-                  <div className="flex items-start gap-2 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                    <Bot className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {patient.aiInsight}
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-3">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors text-xs">
-                      <Phone className="w-3.5 h-3.5" />
-                      Llamar
-                    </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors text-xs">
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      Telegram
-                    </button>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {patient.lastContact}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Chevron */}
-                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all shrink-0" />
-              </div>
-            </div>
-          );
-        })}
-
-        {filteredPatients.length === 0 && (
+      <div 
+        className="divide-y divide-border/30 max-h-[500px] overflow-y-auto"
+        role="list"
+        aria-label="Lista de pacientes"
+      >
+        {isLoading ? (
+          <>
+            <PatientSkeleton />
+            <PatientSkeleton />
+            <PatientSkeleton />
+          </>
+        ) : filteredPatients.length === 0 ? (
+          /* HIG: Empty state */
           <div className="p-8 text-center">
-            <p className="text-muted-foreground">No se encontraron pacientes</p>
+            <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <p className="text-foreground font-medium text-hig-base">No se encontraron pacientes</p>
+            <p className="text-hig-sm text-muted-foreground mt-1">Intenta con otro término de búsqueda</p>
           </div>
+        ) : (
+          filteredPatients.map((patient, index) => {
+            const config = priorityConfig[patient.priority];
+            const PriorityIcon = config.icon;
+            
+            return (
+              <div
+                key={patient.id}
+                role="listitem"
+                tabIndex={0}
+                onClick={() => onPatientClick?.(patient.id)}
+                onKeyDown={(e) => handleKeyDown(e, patient.id)}
+                aria-label={`${patient.name}, prioridad ${config.label}`}
+                className={cn(
+                  "p-4 cursor-pointer group",
+                  "transition-colors duration-hig-fast",
+                  "hover:bg-secondary/20 focus-ring",
+                  patient.priority === 'critical' && "bg-destructive/5"
+                )}
+                style={{ animationDelay: `${index * 0.03}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Priority Indicator */}
+                  <div className={cn(
+                    "w-10 h-10 rounded-hig flex items-center justify-center shrink-0",
+                    config.bgColor
+                  )}>
+                    <PriorityIcon className={cn("w-[var(--icon-md)] h-[var(--icon-md)]", config.color)} aria-hidden="true" />
+                  </div>
+
+                  {/* Patient Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-foreground truncate text-hig-base">{patient.name}</h4>
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-hig-xs font-medium shrink-0",
+                        config.bgColor, config.color
+                      )}>
+                        {config.label}
+                      </span>
+                    </div>
+                    
+                    <p className="text-hig-sm text-muted-foreground mb-2">
+                      {patient.diabetesType} • {patient.age} años
+                    </p>
+
+                    {/* AI Insight */}
+                    <div className="flex items-start gap-2 p-2 rounded-hig bg-purple-500/10 border border-purple-500/20">
+                      <Bot className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-purple-400 shrink-0 mt-0.5" aria-hidden="true" />
+                      <p className="text-hig-xs text-muted-foreground line-clamp-2">
+                        {patient.aiInsight}
+                      </p>
+                    </div>
+
+                    {/* Actions - HIG: 44px touch targets */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); }}
+                        aria-label={`Llamar a ${patient.name}`}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-hig",
+                          "bg-secondary/30 text-muted-foreground",
+                          "hover:text-foreground hover:bg-secondary/50",
+                          "transition-colors duration-hig-fast text-hig-xs",
+                          "focus-ring press-feedback min-h-[var(--touch-target-min)]"
+                        )}
+                      >
+                        <Phone className="w-3.5 h-3.5" aria-hidden="true" />
+                        Llamar
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); }}
+                        aria-label={`Enviar mensaje por Telegram a ${patient.name}`}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 rounded-hig",
+                          "bg-secondary/30 text-muted-foreground",
+                          "hover:text-foreground hover:bg-secondary/50",
+                          "transition-colors duration-hig-fast text-hig-xs",
+                          "focus-ring press-feedback min-h-[var(--touch-target-min)]"
+                        )}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                        Telegram
+                      </button>
+                      <span className="text-hig-xs text-muted-foreground ml-auto">
+                        {patient.lastContact}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Chevron */}
+                  <ChevronRight 
+                    className={cn(
+                      "w-[var(--icon-md)] h-[var(--icon-md)] text-muted-foreground shrink-0",
+                      "transition-all duration-hig-fast",
+                      "group-hover:text-foreground group-hover:translate-x-1"
+                    )} 
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
-    </div>
+    </section>
   );
 }
