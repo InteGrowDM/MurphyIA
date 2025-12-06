@@ -6,17 +6,25 @@ import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
-import { GlucoseLogSheet } from '@/components/glucose/GlucoseLogSheet';
-import { useGlucoseLog } from '@/hooks/useGlucoseLog';
-import { UserRole, Patient } from '@/types/diabetes';
+import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
+import { UserRole, Patient, DizzinessSymptom } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
-import { Activity, TrendingUp, Flame, AlertTriangle, Plus } from 'lucide-react';
+import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const location = useLocation();
   const userRole = (location.state?.role as UserRole) || 'patient';
-  const [isGlucoseSheetOpen, setIsGlucoseSheetOpen] = useState(false);
+
+  // Dialog states for wellness tracking
+  const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
+  const [stressDialogOpen, setStressDialogOpen] = useState(false);
+  const [dizzinessDialogOpen, setDizzinessDialogOpen] = useState(false);
+
+  // Local state for wellness data
+  const [sleepData, setSleepData] = useState<{ hours: number; quality: number } | null>(null);
+  const [stressData, setStressData] = useState<{ level: number } | null>(null);
+  const [dizzinessData, setDizzinessData] = useState<{ severity: number; count: number } | null>(null);
 
   // Get mock data
   const patients = mockData.patients as Patient[];
@@ -26,9 +34,6 @@ export default function Dashboard() {
   const userName = userRole === 'coadmin' 
     ? mockData.coadmins[0].name 
     : currentPatient.name;
-
-  // Glucose log hook
-  const { todayRecords, addRecord, updateRecord } = useGlucoseLog(currentPatient.glucometrias);
 
   // Stats cards data - simplified for patient/coadmin
   const stats = [
@@ -61,6 +66,22 @@ export default function Dashboard() {
       bgColor: 'bg-destructive/20'
     }
   ];
+
+  // Wellness save handlers
+  const handleSaveSleep = (hours: number, quality?: number) => {
+    setSleepData({ hours, quality: quality ?? 5 });
+  };
+
+  const handleSaveStress = (level: number, notes?: string) => {
+    setStressData({ level });
+  };
+
+  const handleSaveDizziness = (severity: number, duration?: number, symptoms?: DizzinessSymptom[], notes?: string) => {
+    setDizzinessData(prev => ({
+      severity,
+      count: (prev?.count ?? 0) + 1
+    }));
+  };
 
   return (
     <DashboardLayout userRole={userRole} userName={userName}>
@@ -121,7 +142,14 @@ export default function Dashboard() {
             streak={currentPatient.streak}
           />
           
-          <HabitTrackerCard />
+          <HabitTrackerCard 
+            sleepData={sleepData}
+            stressData={stressData}
+            dizzinessData={dizzinessData}
+            onSleepClick={() => setSleepDialogOpen(true)}
+            onStressClick={() => setStressDialogOpen(true)}
+            onDizzinessClick={() => setDizzinessDialogOpen(true)}
+          />
           
           <AlertsPanel 
             alerts={currentPatient.alertas}
@@ -130,35 +158,30 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setIsGlucoseSheetOpen(true)}
-        className={cn(
-          "fixed z-50 flex items-center justify-center",
-          "w-14 h-14 rounded-full",
-          "bg-gradient-to-br from-purple-500 to-purple-700",
-          "shadow-lg hover:shadow-xl",
-          "transition-all duration-200 ease-out",
-          "hover:scale-105 active:scale-95",
-          "focus-ring",
-          "right-4 bottom-20",
-          "md:right-6 md:bottom-6",
-          // Safe area for mobile devices
-          "pb-[env(safe-area-inset-bottom)]"
-        )}
-        aria-label="Agregar registro de glucosa"
-      >
-        <Plus className="w-6 h-6 text-white" aria-hidden="true" />
-      </button>
+      {/* Wellness Dialogs */}
+      <DailyLogInputDialog
+        open={sleepDialogOpen}
+        onOpenChange={setSleepDialogOpen}
+        type="sleep"
+        initialHours={sleepData?.hours}
+        initialQuality={sleepData?.quality}
+        onSave={handleSaveSleep}
+      />
 
-      {/* Glucose Log Sheet */}
-      <GlucoseLogSheet
-        open={isGlucoseSheetOpen}
-        onOpenChange={setIsGlucoseSheetOpen}
-        patientName={currentPatient.name}
-        todayRecords={todayRecords}
-        onAddRecord={addRecord}
-        onUpdateRecord={updateRecord}
+      <DailyLogInputDialog
+        open={stressDialogOpen}
+        onOpenChange={setStressDialogOpen}
+        type="stress"
+        initialLevel={stressData?.level}
+        onSave={handleSaveStress}
+      />
+
+      <DailyLogInputDialog
+        open={dizzinessDialogOpen}
+        onOpenChange={setDizzinessDialogOpen}
+        type="dizziness"
+        initialSeverity={dizzinessData?.severity}
+        onSave={handleSaveDizziness}
       />
     </DashboardLayout>
   );

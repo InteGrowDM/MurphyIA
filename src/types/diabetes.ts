@@ -118,6 +118,30 @@ export interface Alert {
   resolved: boolean;
 }
 
+// Dizziness types
+export type DizzinessSymptom = 'nausea' | 'vision_blur' | 'weakness' | 'sweating' | 'confusion' | 'headache';
+
+export const DIZZINESS_SYMPTOMS_LABELS: Record<DizzinessSymptom, string> = {
+  nausea: 'Náuseas',
+  vision_blur: 'Visión borrosa',
+  weakness: 'Debilidad',
+  sweating: 'Sudoración',
+  confusion: 'Confusión',
+  headache: 'Dolor de cabeza',
+};
+
+export const DIZZINESS_SEVERITY_LABELS = ['Leve', 'Moderado', 'Notable', 'Fuerte', 'Severo'];
+export const DIZZINESS_SEVERITY_EMOJIS = ['😵‍💫', '🌀', '💫', '🤕', '🆘'];
+
+export interface DizzinessRecord {
+  id: string;
+  severity: number; // 1-5
+  timestamp: string;
+  duration?: number; // minutes
+  symptoms?: DizzinessSymptom[];
+  notes?: string;
+}
+
 export interface Patient {
   id: string;
   name: string;
@@ -133,6 +157,7 @@ export interface Patient {
   insulina: InsulinDose[];
   sueno: SleepRecord[];
   estres: StressRecord[];
+  mareos?: DizzinessRecord[];
   alertas: Alert[];
 }
 
