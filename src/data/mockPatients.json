@@ -1,0 +1,219 @@
+{
+  "patients": [
+    {
+      "id": "p001",
+      "name": "María García López",
+      "age": 45,
+      "diabetesType": "Tipo 2",
+      "estrato": 4,
+      "avatar": null,
+      "telegramConnected": true,
+      "coadminId": "ca001",
+      "doctorId": "d001",
+      "xpLevel": 78,
+      "streak": 12,
+      "glucometrias": [
+        { "id": "g001", "value": 142, "timestamp": "2024-12-06T07:30:00Z", "type": "fasting" },
+        { "id": "g002", "value": 168, "timestamp": "2024-12-06T13:00:00Z", "type": "postprandial" },
+        { "id": "g003", "value": 125, "timestamp": "2024-12-06T19:30:00Z", "type": "preprandial" },
+        { "id": "g004", "value": 138, "timestamp": "2024-12-05T07:45:00Z", "type": "fasting" },
+        { "id": "g005", "value": 185, "timestamp": "2024-12-05T13:15:00Z", "type": "postprandial" }
+      ],
+      "insulina": [
+        { "id": "i001", "units": 12, "type": "rapid", "timestamp": "2024-12-06T07:35:00Z" },
+        { "id": "i002", "units": 10, "type": "rapid", "timestamp": "2024-12-06T12:55:00Z" },
+        { "id": "i003", "units": 24, "type": "basal", "timestamp": "2024-12-06T22:00:00Z" }
+      ],
+      "sueno": [
+        { "id": "s001", "hours": 6.5, "quality": 7, "date": "2024-12-06" },
+        { "id": "s002", "hours": 7.2, "quality": 8, "date": "2024-12-05" },
+        { "id": "s003", "hours": 5.8, "quality": 5, "date": "2024-12-04" }
+      ],
+      "estres": [
+        { "id": "e001", "level": 6, "timestamp": "2024-12-06T09:00:00Z" },
+        { "id": "e002", "level": 4, "timestamp": "2024-12-06T18:00:00Z" },
+        { "id": "e003", "level": 7, "timestamp": "2024-12-05T15:00:00Z" }
+      ],
+      "alertas": [
+        { "id": "a001", "type": "hyperglycemia", "severity": "warning", "message": "Glucosa postprandial elevada: 185 mg/dL", "timestamp": "2024-12-05T13:15:00Z", "resolved": false }
+      ]
+    },
+    {
+      "id": "p002",
+      "name": "Carlos Rodríguez Sánchez",
+      "age": 62,
+      "diabetesType": "Tipo 2",
+      "estrato": 3,
+      "avatar": null,
+      "telegramConnected": true,
+      "coadminId": "ca002",
+      "doctorId": "d001",
+      "xpLevel": 45,
+      "streak": 5,
+      "glucometrias": [
+        { "id": "g006", "value": 198, "timestamp": "2024-12-06T08:00:00Z", "type": "fasting" },
+        { "id": "g007", "value": 245, "timestamp": "2024-12-06T14:00:00Z", "type": "postprandial" },
+        { "id": "g008", "value": 178, "timestamp": "2024-12-05T08:15:00Z", "type": "fasting" }
+      ],
+      "insulina": [
+        { "id": "i004", "units": 16, "type": "rapid", "timestamp": "2024-12-06T08:05:00Z" },
+        { "id": "i005", "units": 32, "type": "basal", "timestamp": "2024-12-06T22:00:00Z" }
+      ],
+      "sueno": [
+        { "id": "s004", "hours": 5.0, "quality": 4, "date": "2024-12-06" },
+        { "id": "s005", "hours": 5.5, "quality": 5, "date": "2024-12-05" }
+      ],
+      "estres": [
+        { "id": "e004", "level": 8, "timestamp": "2024-12-06T10:00:00Z" },
+        { "id": "e005", "level": 7, "timestamp": "2024-12-05T16:00:00Z" }
+      ],
+      "alertas": [
+        { "id": "a002", "type": "hyperglycemia", "severity": "critical", "message": "Glucosa en ayunas muy elevada: 198 mg/dL", "timestamp": "2024-12-06T08:00:00Z", "resolved": false },
+        { "id": "a003", "type": "hyperglycemia", "severity": "critical", "message": "Pico postprandial peligroso: 245 mg/dL", "timestamp": "2024-12-06T14:00:00Z", "resolved": false }
+      ]
+    },
+    {
+      "id": "p003",
+      "name": "Ana Martínez Ruiz",
+      "age": 34,
+      "diabetesType": "Tipo 1",
+      "estrato": 5,
+      "avatar": null,
+      "telegramConnected": false,
+      "coadminId": null,
+      "doctorId": "d001",
+      "xpLevel": 92,
+      "streak": 28,
+      "glucometrias": [
+        { "id": "g009", "value": 98, "timestamp": "2024-12-06T07:00:00Z", "type": "fasting" },
+        { "id": "g010", "value": 132, "timestamp": "2024-12-06T13:30:00Z", "type": "postprandial" },
+        { "id": "g011", "value": 115, "timestamp": "2024-12-06T19:00:00Z", "type": "preprandial" },
+        { "id": "g012", "value": 105, "timestamp": "2024-12-05T07:15:00Z", "type": "fasting" }
+      ],
+      "insulina": [
+        { "id": "i006", "units": 8, "type": "rapid", "timestamp": "2024-12-06T07:05:00Z" },
+        { "id": "i007", "units": 6, "type": "rapid", "timestamp": "2024-12-06T13:25:00Z" },
+        { "id": "i008", "units": 7, "type": "rapid", "timestamp": "2024-12-06T18:55:00Z" },
+        { "id": "i009", "units": 18, "type": "basal", "timestamp": "2024-12-06T22:00:00Z" }
+      ],
+      "sueno": [
+        { "id": "s006", "hours": 8.0, "quality": 9, "date": "2024-12-06" },
+        { "id": "s007", "hours": 7.5, "quality": 8, "date": "2024-12-05" }
+      ],
+      "estres": [
+        { "id": "e006", "level": 3, "timestamp": "2024-12-06T12:00:00Z" },
+        { "id": "e007", "level": 2, "timestamp": "2024-12-05T18:00:00Z" }
+      ],
+      "alertas": []
+    },
+    {
+      "id": "p004",
+      "name": "Roberto Fernández Díaz",
+      "age": 55,
+      "diabetesType": "Tipo 2",
+      "estrato": 2,
+      "avatar": null,
+      "telegramConnected": true,
+      "coadminId": "ca003",
+      "doctorId": "d001",
+      "xpLevel": 34,
+      "streak": 2,
+      "glucometrias": [
+        { "id": "g013", "value": 68, "timestamp": "2024-12-06T06:30:00Z", "type": "fasting" },
+        { "id": "g014", "value": 145, "timestamp": "2024-12-06T12:45:00Z", "type": "postprandial" },
+        { "id": "g015", "value": 72, "timestamp": "2024-12-05T03:00:00Z", "type": "random" }
+      ],
+      "insulina": [
+        { "id": "i010", "units": 14, "type": "rapid", "timestamp": "2024-12-06T06:35:00Z" },
+        { "id": "i011", "units": 28, "type": "basal", "timestamp": "2024-12-05T22:00:00Z" }
+      ],
+      "sueno": [
+        { "id": "s008", "hours": 4.5, "quality": 3, "date": "2024-12-06" },
+        { "id": "s009", "hours": 5.0, "quality": 4, "date": "2024-12-05" }
+      ],
+      "estres": [
+        { "id": "e008", "level": 9, "timestamp": "2024-12-06T08:00:00Z" }
+      ],
+      "alertas": [
+        { "id": "a004", "type": "hypoglycemia", "severity": "critical", "message": "Episodio hipoglucémico nocturno: 68 mg/dL", "timestamp": "2024-12-06T06:30:00Z", "resolved": false },
+        { "id": "a005", "type": "hypoglycemia", "severity": "warning", "message": "Glucosa baja nocturna: 72 mg/dL", "timestamp": "2024-12-05T03:00:00Z", "resolved": true }
+      ]
+    },
+    {
+      "id": "p005",
+      "name": "Elena Gómez Torres",
+      "age": 28,
+      "diabetesType": "Gestacional",
+      "estrato": 4,
+      "avatar": null,
+      "telegramConnected": true,
+      "coadminId": "ca004",
+      "doctorId": "d002",
+      "xpLevel": 67,
+      "streak": 15,
+      "glucometrias": [
+        { "id": "g016", "value": 88, "timestamp": "2024-12-06T07:15:00Z", "type": "fasting" },
+        { "id": "g017", "value": 128, "timestamp": "2024-12-06T09:15:00Z", "type": "postprandial" },
+        { "id": "g018", "value": 95, "timestamp": "2024-12-06T13:15:00Z", "type": "preprandial" },
+        { "id": "g019", "value": 135, "timestamp": "2024-12-06T15:15:00Z", "type": "postprandial" }
+      ],
+      "insulina": [],
+      "sueno": [
+        { "id": "s010", "hours": 7.0, "quality": 6, "date": "2024-12-06" },
+        { "id": "s011", "hours": 6.5, "quality": 6, "date": "2024-12-05" }
+      ],
+      "estres": [
+        { "id": "e009", "level": 5, "timestamp": "2024-12-06T11:00:00Z" },
+        { "id": "e010", "level": 4, "timestamp": "2024-12-05T14:00:00Z" }
+      ],
+      "alertas": []
+    }
+  ],
+  "coadmins": [
+    { "id": "ca001", "name": "Juan García", "patientId": "p001", "telegramConnected": true },
+    { "id": "ca002", "name": "Laura Rodríguez", "patientId": "p002", "telegramConnected": true },
+    { "id": "ca003", "name": "Miguel Fernández", "patientId": "p004", "telegramConnected": false },
+    { "id": "ca004", "name": "Pedro Gómez", "patientId": "p005", "telegramConnected": true }
+  ],
+  "doctors": [
+    { "id": "d001", "name": "Dr. Alejandro Mendoza", "specialty": "Endocrinología", "patientCount": 4 },
+    { "id": "d002", "name": "Dra. Patricia Vargas", "specialty": "Ginecología - Diabetes Gestacional", "patientCount": 1 }
+  ],
+  "aiReports": [
+    {
+      "id": "r001",
+      "patientId": "p002",
+      "generatedAt": "2024-12-06T06:00:00Z",
+      "summary": {
+        "avgGlucose": 207,
+        "stdDev": 34,
+        "hypoCount": 0,
+        "hyperCount": 8,
+        "timeInRange": 22,
+        "trend": "deteriorating"
+      },
+      "recommendations": [
+        "Ajustar dosis basal nocturna",
+        "Revisar carbohidratos en almuerzo",
+        "Evaluar adherencia a medicación"
+      ]
+    },
+    {
+      "id": "r002",
+      "patientId": "p003",
+      "generatedAt": "2024-12-06T06:00:00Z",
+      "summary": {
+        "avgGlucose": 112,
+        "stdDev": 15,
+        "hypoCount": 0,
+        "hyperCount": 1,
+        "timeInRange": 94,
+        "trend": "stable"
+      },
+      "recommendations": [
+        "Mantener régimen actual",
+        "Excelente control glucémico"
+      ]
+    }
+  ]
+}
