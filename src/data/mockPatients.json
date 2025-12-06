@@ -33,6 +33,7 @@
         { "id": "e002", "level": 4, "timestamp": "2024-12-06T18:00:00Z" },
         { "id": "e003", "level": 7, "timestamp": "2024-12-05T15:00:00Z" }
       ],
+      "mareos": [],
       "alertas": [
         { "id": "a001", "type": "hyperglycemia", "severity": "warning", "message": "Glucosa postprandial elevada: 185 mg/dL", "timestamp": "2024-12-05T13:15:00Z", "resolved": false }
       ]
@@ -65,6 +66,7 @@
         { "id": "e004", "level": 8, "timestamp": "2024-12-06T10:00:00Z" },
         { "id": "e005", "level": 7, "timestamp": "2024-12-05T16:00:00Z" }
       ],
+      "mareos": [],
       "alertas": [
         { "id": "a002", "type": "hyperglycemia", "severity": "critical", "message": "Glucosa en ayunas muy elevada: 198 mg/dL", "timestamp": "2024-12-06T08:00:00Z", "resolved": false },
         { "id": "a003", "type": "hyperglycemia", "severity": "critical", "message": "Pico postprandial peligroso: 245 mg/dL", "timestamp": "2024-12-06T14:00:00Z", "resolved": false }
@@ -101,6 +103,7 @@
         { "id": "e006", "level": 3, "timestamp": "2024-12-06T12:00:00Z" },
         { "id": "e007", "level": 2, "timestamp": "2024-12-05T18:00:00Z" }
       ],
+      "mareos": [],
       "alertas": []
     },
     {
@@ -130,6 +133,7 @@
       "estres": [
         { "id": "e008", "level": 9, "timestamp": "2024-12-06T08:00:00Z" }
       ],
+      "mareos": [],
       "alertas": [
         { "id": "a004", "type": "hypoglycemia", "severity": "critical", "message": "Episodio hipoglucémico nocturno: 68 mg/dL", "timestamp": "2024-12-06T06:30:00Z", "resolved": false },
         { "id": "a005", "type": "hypoglycemia", "severity": "warning", "message": "Glucosa baja nocturna: 72 mg/dL", "timestamp": "2024-12-05T03:00:00Z", "resolved": true }
@@ -161,6 +165,7 @@
         { "id": "e009", "level": 5, "timestamp": "2024-12-06T11:00:00Z" },
         { "id": "e010", "level": 4, "timestamp": "2024-12-05T14:00:00Z" }
       ],
+      "mareos": [],
       "alertas": []
     }
   ],
