@@ -114,9 +114,9 @@ export default function Dashboard() {
         </p>
       </header>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - 4 columns from tablet */}
       <section 
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
         role="list"
         aria-label="Estadísticas principales"
       >
@@ -155,10 +155,10 @@ export default function Dashboard() {
         />
       </section>
 
-      {/* Main content grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Charts & Data */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Main content grid - responsive breakpoints */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Left Column - Charts & Data (full on mobile, half on tablet, 2/3 on desktop) */}
+        <div className="md:col-span-1 lg:col-span-2 space-y-6">
           <GlucoseChart data={currentPatient.glucometrias} />
           
           {userRole === 'coadmin' && (
@@ -166,8 +166,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Right Column - XP & Alerts */}
-        <div className="space-y-6">
+        {/* Right Column - XP & Alerts (full on mobile, half on tablet, 1/3 on desktop) */}
+        <div className="md:col-span-1 lg:col-span-1 space-y-6">
           <XPDonut 
             totalXP={xpResult.levelInfo.currentLevelXP + (xpResult.levelInfo.level - 1) * 300}
             todayXP={xpResult.finalXP}

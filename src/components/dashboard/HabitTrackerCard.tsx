@@ -124,58 +124,64 @@ export function HabitTrackerCard({
         </div>
       </div>
 
-      {/* Wellness Items List */}
-      <ul className="p-5 space-y-2" role="list" aria-label="Lista de bienestar">
+      {/* Wellness Items Grid - Responsive */}
+      <div 
+        className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3" 
+        role="list" 
+        aria-label="Lista de bienestar"
+      >
         {wellnessItems.map((item, index) => {
           const Icon = item.icon;
           return (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => handleItemClick(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3 rounded-hig",
-                  "transition-all duration-hig-fast ease-hig-out",
-                  "hover:bg-secondary/30 focus-ring press-feedback",
-                  "min-h-[var(--touch-target-comfortable)]",
-                  item.status === 'recorded' ? "bg-secondary/20" : "bg-transparent"
-                )}
-                style={{ animationDelay: `${index * 0.03}s` }}
-                aria-label={`${item.label}: ${item.value || 'Sin registrar'}`}
-              >
-                {/* Icon */}
-                <div className={cn(
-                  "w-10 h-10 rounded-hig flex items-center justify-center shrink-0",
-                  "transition-shadow duration-hig-fast",
-                  item.bgColor,
-                  item.status === 'recorded' && "elevation-1"
+            <button
+              key={item.id}
+              type="button"
+              role="listitem"
+              onClick={() => handleItemClick(item.id)}
+              className={cn(
+                "flex md:flex-col items-center gap-3 md:gap-2 p-4 rounded-hig",
+                "transition-all duration-hig-fast ease-hig-out",
+                "hover:bg-secondary/40 focus-ring press-feedback",
+                "min-h-[var(--touch-target-comfortable)]",
+                item.status === 'recorded' 
+                  ? "bg-secondary/30 border border-border/50" 
+                  : "bg-secondary/10 border border-transparent"
+              )}
+              style={{ animationDelay: `${index * 0.03}s` }}
+              aria-label={`${item.label}: ${item.value || 'Sin registrar'}`}
+            >
+              {/* Icon */}
+              <div className={cn(
+                "w-12 h-12 md:w-14 md:h-14 rounded-hig flex items-center justify-center shrink-0",
+                "transition-shadow duration-hig-fast",
+                item.bgColor,
+                item.status === 'recorded' && "elevation-1"
+              )}>
+                <Icon className={cn("w-6 h-6 md:w-7 md:h-7", item.color)} aria-hidden="true" />
+              </div>
+
+              {/* Label & Value */}
+              <div className="flex-1 min-w-0 text-left md:text-center">
+                <p className={cn(
+                  "font-medium text-hig-sm transition-colors duration-hig-fast",
+                  item.status === 'recorded' ? "text-foreground" : "text-muted-foreground"
                 )}>
-                  <Icon className={cn("w-[var(--icon-md)] h-[var(--icon-md)]", item.color)} aria-hidden="true" />
-                </div>
+                  {item.label}
+                </p>
+                <p className={cn(
+                  "text-hig-xs mt-0.5",
+                  item.status === 'recorded' ? "text-muted-foreground" : "text-muted-foreground/60"
+                )}>
+                  {item.value || 'Toca para registrar'}
+                </p>
+              </div>
 
-                {/* Label & Value */}
-                <div className="flex-1 min-w-0 text-left">
-                  <p className={cn(
-                    "font-medium text-hig-base transition-colors duration-hig-fast",
-                    item.status === 'recorded' ? "text-foreground" : "text-muted-foreground"
-                  )}>
-                    {item.label}
-                  </p>
-                  <p className={cn(
-                    "text-hig-sm",
-                    item.status === 'recorded' ? "text-muted-foreground" : "text-muted-foreground/60"
-                  )}>
-                    {item.value || 'Toca para registrar'}
-                  </p>
-                </div>
-
-                {/* Arrow indicator */}
-                <ChevronRight className="w-5 h-5 text-muted-foreground/50" aria-hidden="true" />
-              </button>
-            </li>
+              {/* Arrow indicator - only on mobile */}
+              <ChevronRight className="w-5 h-5 text-muted-foreground/50 md:hidden" aria-hidden="true" />
+            </button>
           );
         })}
-      </ul>
+      </div>
     </section>
   );
 }
