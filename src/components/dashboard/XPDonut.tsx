@@ -73,15 +73,15 @@ export function XPDonut({
       className="glass-card p-6 animate-fade-up"
       aria-labelledby="xp-donut-title"
     >
-      <div className="flex flex-col lg:flex-row items-center gap-6">
+      <div className="flex flex-col md:flex-row items-center gap-6">
         {/* Donut Chart */}
         <div 
-          className="relative"
+          className="relative shrink-0"
           role="img"
           aria-label={`Nivel XP: ${animatedProgress.toFixed(0)}%`}
         >
           <svg 
-            className="w-36 h-36 transform -rotate-90"
+            className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 transform -rotate-90"
             viewBox="0 0 100 100"
             aria-hidden="true"
           >
