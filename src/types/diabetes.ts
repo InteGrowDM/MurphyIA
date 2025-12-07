@@ -197,3 +197,14 @@ export interface MockData {
   coadmins: Coadmin[];
   aiReports: AIReport[];
 }
+
+// XP System types
+export interface DailyXPLog {
+  date: string;
+  baseXP: number;
+  finalXP: number;
+  slotsCompleted: number;
+  inRangePercent: number;
+  streakDays: number;
+  streakMultiplier: number;
+}

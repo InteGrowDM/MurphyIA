@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { GlucoseSlotCard } from '@/components/glucose/GlucoseSlotCard';
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
+import { DailyXPSummary } from '@/components/glucose/DailyXPSummary';
 import { ViewModeSelector } from '@/components/glucose/ViewModeSelector';
 import { WeeklyView } from '@/components/glucose/WeeklyView';
 import { MonthlyView } from '@/components/glucose/MonthlyView';
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGlucoseLog } from '@/hooks/useGlucoseLog';
+import { useXPCalculation } from '@/hooks/useXPCalculation';
 import { 
   Glucometry, 
   GlucometryType, 
@@ -41,6 +43,10 @@ export default function Glucometrias() {
     type: GlucometryType;
     record?: Glucometry;
   } | null>(null);
+
+  // Mock wellness state (in real app, this would come from a shared context/store)
+  const [hasSleepLogged] = useState(false);
+  const [hasStressLogged] = useState(false);
 
   // Initialize hook with existing patient data
   const { 
@@ -86,6 +92,24 @@ export default function Glucometrias() {
   const dayRecords = useMemo(() => {
     return getRecordsByDate(selectedDate);
   }, [selectedDate, getRecordsByDate]);
+
+  // Get today's records for XP calculation
+  const todayRecords = useMemo(() => {
+    const today = new Date();
+    if (isSameDay(selectedDate, today)) {
+      return Array.from(dayRecords.values());
+    }
+    return Array.from(getRecordsByDate(today).values());
+  }, [selectedDate, dayRecords, getRecordsByDate]);
+
+  // Calculate XP for today
+  const xpResult = useXPCalculation({
+    todayGlucoseRecords: todayRecords,
+    hasSleepLogged,
+    hasStressLogged,
+    streakDays: currentPatient.streak,
+    totalAccumulatedXP: currentPatient.xpLevel * 10,
+  });
 
   const isToday = isSameDay(selectedDate, new Date());
 
@@ -187,6 +211,11 @@ export default function Glucometrias() {
       {/* Daily View - EDITABLE */}
       {viewMode === 'daily' && (
         <>
+          {/* XP Summary for today */}
+          {isToday && (
+            <DailyXPSummary xpResult={xpResult} className="mb-6" />
+          )}
+
           {/* Daily Stats */}
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

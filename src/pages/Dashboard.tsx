@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { PatientCard } from '@/components/dashboard/PatientCard';
@@ -7,10 +7,12 @@ import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
-import { UserRole, Patient, DizzinessSymptom } from '@/types/diabetes';
+import { useXPCalculation } from '@/hooks/useXPCalculation';
+import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
 import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isSameDay } from 'date-fns';
 
 export default function Dashboard() {
   const location = useLocation();
@@ -34,6 +36,23 @@ export default function Dashboard() {
   const userName = userRole === 'coadmin' 
     ? mockData.coadmins[0].name 
     : currentPatient.name;
+
+  // Get today's glucose records
+  const todayGlucoseRecords = useMemo(() => {
+    const today = new Date();
+    return (currentPatient.glucometrias as Glucometry[]).filter(record => 
+      isSameDay(new Date(record.timestamp), today)
+    );
+  }, [currentPatient.glucometrias]);
+
+  // Calculate XP using the hook
+  const xpResult = useXPCalculation({
+    todayGlucoseRecords,
+    hasSleepLogged: !!sleepData,
+    hasStressLogged: !!stressData,
+    streakDays: currentPatient.streak,
+    totalAccumulatedXP: currentPatient.xpLevel * 10, // Mock: convert level to XP
+  });
 
   // Stats cards data - simplified for patient/coadmin
   const stats = [
@@ -138,8 +157,15 @@ export default function Dashboard() {
         {/* Right Column - Tracking & XP */}
         <div className="space-y-6">
           <XPDonut 
-            xpLevel={currentPatient.xpLevel} 
-            streak={currentPatient.streak}
+            totalXP={xpResult.levelInfo.currentLevelXP + (xpResult.levelInfo.level - 1) * 300}
+            todayXP={xpResult.finalXP}
+            currentLevelXP={xpResult.levelInfo.currentLevelXP}
+            nextLevelThreshold={xpResult.levelInfo.nextLevelThreshold}
+            streak={xpResult.streakDays}
+            levelTitle={xpResult.levelInfo.title}
+            streakMultiplier={xpResult.streakMultiplier}
+            slotsToday={xpResult.slotsCompleted}
+            progressPercent={xpResult.levelInfo.progressPercent}
           />
           
           <HabitTrackerCard 
