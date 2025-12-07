@@ -201,6 +201,35 @@ export interface AIReport {
   pdfUrl?: string;
 }
 
+// User settings types
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  birthDate: string;
+  phone?: string;
+  diabetesType: DiabetesType;
+}
+
+export interface NotificationPreferences {
+  glucoseAlerts: boolean;
+  hypoglycemiaAlerts: boolean;
+  hyperglycemiaAlerts: boolean;
+  medicationReminders: boolean;
+  measurementReminders: boolean;
+  dailySummary: boolean;
+}
+
+export interface ConnectedDevice {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  connectedAt: string;
+  lastSync?: string;
+  batteryLevel?: number;
+}
+
 export interface MockData {
   patients: Patient[];
   coadmins: Coadmin[];
