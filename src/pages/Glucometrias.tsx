@@ -143,7 +143,7 @@ export default function Glucometrias() {
       </header>
 
       {/* View Mode Selector */}
-      <div className="mb-4">
+      <div className="mb-4 flex justify-center">
         <ViewModeSelector value={viewMode} onChange={setViewMode} />
       </div>
 
