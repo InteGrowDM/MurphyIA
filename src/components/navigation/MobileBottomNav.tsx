@@ -17,10 +17,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Ajustes', href: '/configuracion', icon: Settings },
+  { label: 'Alertas', href: '/alertas', icon: Bell },
   { label: 'Insulina', href: '/insulina', icon: Syringe },
   { label: 'Glucometrías', href: '/glucometrias', icon: Activity, isCenter: true },
-  { label: 'Alertas', href: '/alertas', icon: Bell },
+  { label: 'Ajustes', href: '/configuracion', icon: Settings },
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
 ];
 
