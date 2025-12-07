@@ -149,7 +149,7 @@ export default function Glucometrias() {
 
       {/* Date Picker (only for daily view) */}
       {viewMode === 'daily' && (
-        <div className="mb-6">
+        <div className="mb-6 flex justify-center">
           <Popover>
             <PopoverTrigger asChild>
               <Button
