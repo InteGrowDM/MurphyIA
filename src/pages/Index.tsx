@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, ArrowRight, Zap, Shield, Bot, type LucideIcon } from 'lucide-react';
+import { Activity, Users, ArrowRight, Zap, Shield, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
 
@@ -81,27 +81,21 @@ const Index = () => {
       {/* Main Content */}
       <main id="main-content" className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6 animate-fade-up">
-            <Bot className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-purple-400" aria-hidden="true" />
-            <span className="text-hig-sm text-purple-400">Potenciado por Shaun Murphy IA</span>
-          </div>
-
           {/* Title */}
-          <h2 className="text-hig-3xl md:text-[clamp(2.5rem,5vw,4rem)] font-bold text-foreground mb-4 animate-fade-up stagger-1 leading-hig-tight">
+          <h2 className="text-hig-3xl md:text-[clamp(2.5rem,5vw,4rem)] font-bold text-foreground mb-4 animate-fade-up leading-hig-tight">
             Tu salud,{' '}
             <span className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent">
               bajo control
             </span>
           </h2>
           
-          <p className="text-hig-lg md:text-hig-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-2 leading-hig-normal">
+          <p className="text-hig-lg md:text-hig-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-1 leading-hig-normal">
             Plataforma inteligente para el seguimiento de diabetes con integración Telegram 
-            y análisis de IA personalizado.
+            y análisis personalizado.
           </p>
 
           {/* Features */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-12 animate-fade-up stagger-3" role="list" aria-label="Características">
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-12 animate-fade-up stagger-2" role="list" aria-label="Características">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50" role="listitem">
               <Zap className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-warning" aria-hidden="true" />
               <span className="text-hig-sm text-muted-foreground">Tiempo real</span>
@@ -110,15 +104,11 @@ const Index = () => {
               <Shield className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-success" aria-hidden="true" />
               <span className="text-hig-sm text-muted-foreground">Datos seguros</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border/50" role="listitem">
-              <Bot className="w-[var(--icon-sm)] h-[var(--icon-sm)] text-purple-400" aria-hidden="true" />
-              <span className="text-hig-sm text-muted-foreground">Análisis IA</span>
-            </div>
           </div>
         </div>
 
         {/* Role Selection */}
-        <div className="w-full max-w-3xl mx-auto animate-fade-up stagger-4">
+        <div className="w-full max-w-3xl mx-auto animate-fade-up stagger-3">
           <p className="text-center text-muted-foreground mb-6 text-hig-base" id="role-selection-label">
             Selecciona tu rol para continuar
           </p>
