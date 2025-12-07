@@ -4,7 +4,7 @@ import {
   Activity, 
   Bell, 
   Settings, 
-  MessageCircle,
+  Syringe,
   UserCircle,
   type LucideIcon
 } from 'lucide-react';
@@ -20,7 +20,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Glucometrías', href: '/glucometrias', icon: Activity },
-  { label: 'Telegram', href: '/telegram', icon: MessageCircle },
+  { label: 'Insulina', href: '/insulina', icon: Syringe },
   { label: 'Alertas', href: '/alertas', icon: Bell },
 ];
 

@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Glucometrias from "./pages/Glucometrias";
 import Configuracion from "./pages/Configuracion";
-import Telegram from "./pages/Telegram";
+import Insulina from "./pages/Insulina";
 import Alertas from "./pages/Alertas";
 import NotFound from "./pages/NotFound";
 
@@ -24,7 +24,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/glucometrias" element={<Glucometrias />} />
           <Route path="/configuracion" element={<Configuracion />} />
-          <Route path="/telegram" element={<Telegram />} />
+          <Route path="/insulina" element={<Insulina />} />
           <Route path="/alertas" element={<Alertas />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

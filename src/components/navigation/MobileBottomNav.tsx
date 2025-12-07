@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Settings, 
-  MessageCircle, 
+  Syringe, 
   Activity, 
   Bell, 
   LayoutDashboard,
@@ -18,7 +18,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Ajustes', href: '/configuracion', icon: Settings },
-  { label: 'Telegram', href: '/telegram', icon: MessageCircle },
+  { label: 'Insulina', href: '/insulina', icon: Syringe },
   { label: 'Glucometrías', href: '/glucometrias', icon: Activity, isCenter: true },
   { label: 'Alertas', href: '/alertas', icon: Bell },
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
