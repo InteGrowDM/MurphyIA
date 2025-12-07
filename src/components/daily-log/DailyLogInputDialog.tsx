@@ -73,9 +73,8 @@ interface StressDialogProps extends BaseDialogProps {
 interface DizzinessDialogProps extends BaseDialogProps {
   type: 'dizziness';
   initialSeverity?: number;
-  initialDuration?: number;
   initialSymptoms?: DizzinessSymptom[];
-  onSave: (severity: number, duration?: number, symptoms?: DizzinessSymptom[], notes?: string) => void;
+  onSave: (severity: number, symptoms?: DizzinessSymptom[], notes?: string) => void;
 }
 
 export type DailyLogInputDialogProps = 
@@ -616,23 +615,21 @@ function StressContent({ open, onOpenChange, initialLevel, onSave }: StressDialo
 
 // ==================== DIZZINESS VARIANT ====================
 
-function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration, initialSymptoms, onSave }: DizzinessDialogProps) {
+function DizzinessContent({ open, onOpenChange, initialSeverity, initialSymptoms, onSave }: DizzinessDialogProps) {
   const [severity, setSeverity] = useState<number>(initialSeverity ?? 2);
-  const [duration, setDuration] = useState<number>(initialDuration ?? 5);
   const [symptoms, setSymptoms] = useState<DizzinessSymptom[]>(initialSymptoms ?? []);
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (open) {
       setSeverity(initialSeverity ?? 2);
-      setDuration(initialDuration ?? 5);
       setSymptoms(initialSymptoms ?? []);
       setNotes('');
     }
-  }, [open, initialSeverity, initialDuration, initialSymptoms]);
+  }, [open, initialSeverity, initialSymptoms]);
 
   const handleSubmit = () => {
-    onSave(severity, duration, symptoms.length > 0 ? symptoms : undefined, notes.trim() || undefined);
+    onSave(severity, symptoms.length > 0 ? symptoms : undefined, notes.trim() || undefined);
     onOpenChange(false);
   };
 
@@ -656,7 +653,7 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] bg-card border-border/50">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[400px] bg-card border-border/50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Icon className={cn("w-5 h-5", DIALOG_CONFIG.dizziness.color)} />
@@ -664,22 +661,22 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-4">
-          {/* Severity selector */}
+        <div className="space-y-5 py-2">
+          {/* Severity selector - Mobile optimized */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <Label className="text-muted-foreground">Intensidad del mareo</Label>
+              <Label className="text-muted-foreground text-sm">Intensidad del mareo</Label>
               <span className="text-2xl">{DIZZINESS_SEVERITY_EMOJIS[severity - 1]}</span>
             </div>
             
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1.5">
               {DIZZINESS_SEVERITY_EMOJIS.map((emoji, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSeverity(idx + 1)}
                   className={cn(
-                    "text-xl p-2 rounded-lg transition-all flex flex-col items-center gap-1",
+                    "min-h-[52px] text-2xl rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95",
                     severity === idx + 1 
                       ? cn(severityColors[idx], "ring-2 scale-105")
                       : "bg-muted/30 hover:bg-muted/50"
@@ -687,7 +684,7 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration
                   aria-label={DIZZINESS_SEVERITY_LABELS[idx]}
                 >
                   {emoji}
-                  <span className="text-[10px] text-muted-foreground">{idx + 1}</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">{idx + 1}</span>
                 </button>
               ))}
             </div>
@@ -702,42 +699,22 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration
             </p>
           </div>
 
-          {/* Duration slider */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label className="text-muted-foreground">Duración aproximada</Label>
-              <span className="text-lg font-semibold text-foreground">{duration} min</span>
-            </div>
-            <Slider
-              value={[duration]}
-              onValueChange={([v]) => setDuration(v)}
-              min={1}
-              max={60}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>1 min</span>
-              <span>30 min</span>
-              <span>60 min</span>
-            </div>
-          </div>
-
-          {/* Symptoms checkboxes */}
+          {/* Symptoms checkboxes - Mobile optimized */}
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Síntomas asociados (opcional)</Label>
+            <Label className="text-muted-foreground text-sm">Síntomas asociados (opcional)</Label>
             <div className="grid grid-cols-2 gap-2">
               {(Object.entries(DIZZINESS_SYMPTOMS_LABELS) as [DizzinessSymptom, string][]).map(([key, label]) => (
                 <label
                   key={key}
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors",
-                    symptoms.includes(key) ? "bg-primary/10" : "bg-muted/20 hover:bg-muted/30"
+                    "flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors min-h-[44px] active:scale-[0.98]",
+                    symptoms.includes(key) ? "bg-primary/15 ring-1 ring-primary/30" : "bg-muted/20 hover:bg-muted/30"
                   )}
                 >
                   <Checkbox
                     checked={symptoms.includes(key)}
                     onCheckedChange={() => toggleSymptom(key)}
+                    className="h-5 w-5"
                   />
                   <span className="text-sm">{label}</span>
                 </label>
@@ -745,31 +722,38 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialDuration
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Notes - Compact */}
           <div className="space-y-2">
-            <Label htmlFor="dizziness-notes" className="text-muted-foreground">
+            <Label htmlFor="dizziness-notes" className="text-muted-foreground text-sm">
               Notas (opcional)
             </Label>
             <Textarea
               id="dizziness-notes"
-              placeholder="Ej: Ocurrió después de levantarme rápido..."
+              placeholder="Ej: Ocurrió después de levantarme..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="resize-none h-16"
+              className="resize-none h-14 text-sm"
               maxLength={200}
             />
           </div>
 
-          <div className="text-xs text-muted-foreground pt-2 border-t border-border/30">
-            <p>💡 Los mareos pueden indicar cambios en la glucosa. Considera medir tu glucosa.</p>
+          <div className="text-xs text-muted-foreground/80 pt-2 border-t border-border/30">
+            <p>💡 Los mareos pueden indicar cambios en glucosa.</p>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            className="w-full sm:w-auto min-h-[44px]"
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} className="flex-1 sm:flex-none">
+          <Button 
+            onClick={handleSubmit} 
+            className="w-full sm:w-auto min-h-[44px]"
+          >
             Guardar
           </Button>
         </DialogFooter>

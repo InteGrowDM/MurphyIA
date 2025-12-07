@@ -76,7 +76,7 @@ export default function Dashboard() {
     setStressData({ level });
   };
 
-  const handleSaveDizziness = (severity: number, duration?: number, symptoms?: DizzinessSymptom[], notes?: string) => {
+  const handleSaveDizziness = (severity: number, symptoms?: DizzinessSymptom[], notes?: string) => {
     setDizzinessData(prev => ({
       severity,
       count: (prev?.count ?? 0) + 1
