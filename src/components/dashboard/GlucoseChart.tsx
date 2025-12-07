@@ -2,7 +2,24 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart } from 'recharts';
 import { Glucometry, GLUCOMETRY_LABELS } from '@/types/diabetes';
 import { cn } from '@/lib/utils';
-import { Activity, TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
+
+// Horarios típicos de medición para los 6 slots
+const MEASUREMENT_TIMES = [
+  { time: '07:00', label: 'AD', fullLabel: 'Antes Desayuno', period: 'breakfast' },
+  { time: '09:00', label: 'DD', fullLabel: 'Después Desayuno', period: 'breakfast' },
+  { time: '12:00', label: 'AA', fullLabel: 'Antes Almuerzo', period: 'lunch' },
+  { time: '14:00', label: 'DA', fullLabel: 'Después Almuerzo', period: 'lunch' },
+  { time: '19:00', label: 'AC', fullLabel: 'Antes Cena', period: 'dinner' },
+  { time: '21:00', label: 'DC', fullLabel: 'Después Cena', period: 'dinner' },
+] as const;
+
+// Colores por período de comida (usando tokens del sistema)
+const PERIOD_COLORS = {
+  breakfast: 'hsl(40, 90%, 55%)',   // Amarillo dorado - desayuno/mañana
+  lunch: 'hsl(150, 60%, 45%)',      // Verde - almuerzo/mediodía
+  dinner: 'hsl(260, 65%, 60%)',     // Púrpura - cena/noche
+} as const;
 
 interface GlucoseChartProps {
   data: Glucometry[];
@@ -138,6 +155,25 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
               vertical={false}
             />
             
+            {/* Marcadores verticales para los 6 momentos de medición */}
+            {MEASUREMENT_TIMES.map((slot) => (
+              <ReferenceLine
+                key={slot.time}
+                x={slot.time}
+                stroke={PERIOD_COLORS[slot.period]}
+                strokeDasharray="4 4"
+                strokeOpacity={0.25}
+                label={{
+                  value: slot.label,
+                  position: 'top',
+                  fill: PERIOD_COLORS[slot.period],
+                  fontSize: 10,
+                  fontWeight: 500,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+
             {showTargetRange && (
               <>
                 <ReferenceLine 
