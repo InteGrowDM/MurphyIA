@@ -153,7 +153,32 @@ export default function Dashboard() {
             <PatientCard patient={currentPatient} />
           )}
         </div>
+      {/* Wellness Dialogs */}
+      <DailyLogInputDialog
+        open={sleepDialogOpen}
+        onOpenChange={setSleepDialogOpen}
+        type="sleep"
+        initialHours={sleepData?.hours}
+        initialQuality={sleepData?.quality}
+        onSave={handleSaveSleep}
+      />
 
+      <DailyLogInputDialog
+        open={stressDialogOpen}
+        onOpenChange={setStressDialogOpen}
+        type="stress"
+        initialLevel={stressData?.level}
+        onSave={handleSaveStress}
+      />
+
+      <DailyLogInputDialog
+        open={dizzinessDialogOpen}
+        onOpenChange={setDizzinessDialogOpen}
+        type="dizziness"
+        initialSeverity={dizzinessData?.severity}
+        onSave={handleSaveDizziness}
+      />
+    </DashboardLayout>
         {/* Right Column - Tracking & XP */}
         <div className="space-y-6">
           <XPDonut 
@@ -184,31 +209,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Wellness Dialogs */}
-      <DailyLogInputDialog
-        open={sleepDialogOpen}
-        onOpenChange={setSleepDialogOpen}
-        type="sleep"
-        initialHours={sleepData?.hours}
-        initialQuality={sleepData?.quality}
-        onSave={handleSaveSleep}
-      />
-
-      <DailyLogInputDialog
-        open={stressDialogOpen}
-        onOpenChange={setStressDialogOpen}
-        type="stress"
-        initialLevel={stressData?.level}
-        onSave={handleSaveStress}
-      />
-
-      <DailyLogInputDialog
-        open={dizzinessDialogOpen}
-        onOpenChange={setDizzinessDialogOpen}
-        type="dizziness"
-        initialSeverity={dizzinessData?.severity}
-        onSave={handleSaveDizziness}
-      />
-    </DashboardLayout>
+     
   );
 }
