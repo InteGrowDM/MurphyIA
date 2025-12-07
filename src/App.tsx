@@ -11,6 +11,12 @@ import Insulina from "./pages/Insulina";
 import Alertas from "./pages/Alertas";
 import NotFound from "./pages/NotFound";
 
+// Medico pages
+import MedicoPacientes from "./pages/medico/Pacientes";
+import MedicoPacienteDetalle from "./pages/medico/PacienteDetalle";
+import MedicoInformes from "./pages/medico/Informes";
+import MedicoAlertas from "./pages/medico/Alertas";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +32,13 @@ const App = () => (
           <Route path="/configuracion" element={<Configuracion />} />
           <Route path="/insulina" element={<Insulina />} />
           <Route path="/alertas" element={<Alertas />} />
+          
+          {/* Medico Routes */}
+          <Route path="/medico/pacientes" element={<MedicoPacientes />} />
+          <Route path="/medico/paciente/:id" element={<MedicoPacienteDetalle />} />
+          <Route path="/medico/informes" element={<MedicoInformes />} />
+          <Route path="/medico/alertas" element={<MedicoAlertas />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

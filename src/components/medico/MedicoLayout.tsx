@@ -1,17 +1,15 @@
 import { cn } from '@/lib/utils';
-import { UserRole } from '@/types/diabetes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 import { TopNavbar } from '@/components/navigation/TopNavbar';
 import { Activity } from 'lucide-react';
 
-interface DashboardLayoutProps {
+interface MedicoLayoutProps {
   children: React.ReactNode;
-  userRole: UserRole;
-  userName: string;
+  doctorName?: string;
 }
 
-export function DashboardLayout({ children, userRole, userName }: DashboardLayoutProps) {
+export function MedicoLayout({ children, doctorName = 'Dr. Alejandro Méndez' }: MedicoLayoutProps) {
   const isMobile = useIsMobile();
 
   return (
@@ -20,7 +18,7 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 glass-card border-b border-border/50 px-4 safe-area-inset">
         <div className="flex items-center justify-center h-full">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-hig bg-gradient-purple flex items-center justify-center">
+            <div className="w-8 h-8 rounded-hig bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center">
               <Activity className="w-[var(--icon-md)] h-[var(--icon-md)] text-foreground" aria-hidden="true" />
             </div>
             <span className="font-semibold text-foreground">DiabetesManager</span>
@@ -29,7 +27,7 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
       </header>
 
       {/* Desktop/Tablet Top Navbar */}
-      <TopNavbar userName={userName} userRole={userRole} />
+      <TopNavbar userName={doctorName} userRole="doctor" />
 
       {/* Main Content */}
       <main 
@@ -46,7 +44,7 @@ export function DashboardLayout({ children, userRole, userName }: DashboardLayou
       </main>
 
       {/* Mobile Bottom Navigation */}
-      {isMobile && <MobileBottomNav userRole={userRole} />}
+      {isMobile && <MobileBottomNav userRole="doctor" />}
     </div>
   );
 }

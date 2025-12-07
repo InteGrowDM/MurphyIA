@@ -1,28 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Activity, 
-  Bell, 
   Settings, 
-  Syringe,
   UserCircle,
-  type LucideIcon
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-}
-
-const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Glucometrías', href: '/glucometrias', icon: Activity },
-  { label: 'Insulina', href: '/insulina', icon: Syringe },
-  { label: 'Alertas', href: '/alertas', icon: Bell },
-];
+import { getNavItems, getHomeRoute, getSettingsRoute } from '@/lib/navigation';
 
 interface TopNavbarProps {
   userName: string;
@@ -32,10 +16,14 @@ interface TopNavbarProps {
 const roleLabels: Record<UserRole, string> = {
   patient: 'Paciente',
   coadmin: 'Co-admin',
+  doctor: 'Médico',
 };
 
 export function TopNavbar({ userName, userRole }: TopNavbarProps) {
   const location = useLocation();
+  const navItems = getNavItems(userRole);
+  const homeRoute = getHomeRoute(userRole);
+  const settingsRoute = getSettingsRoute(userRole);
   
   const isActive = (path: string) => location.pathname === path;
 
@@ -46,7 +34,7 @@ export function TopNavbar({ userName, userRole }: TopNavbarProps) {
     >
       <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
+        <Link to={homeRoute} className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-hig bg-gradient-purple flex items-center justify-center">
             <Activity className="w-[var(--icon-md)] h-[var(--icon-md)] text-foreground" aria-hidden="true" />
           </div>
@@ -96,13 +84,13 @@ export function TopNavbar({ userName, userRole }: TopNavbarProps) {
         <div className="flex items-center gap-3 shrink-0">
           {/* Settings Button */}
           <Link
-            to="/configuracion"
+            to={settingsRoute}
             aria-label="Configuración"
             className={cn(
               "flex items-center justify-center w-9 h-9 rounded-hig",
               "transition-colors duration-hig-fast",
               "focus-ring",
-              isActive('/configuracion')
+              isActive(settingsRoute)
                 ? "bg-primary/15 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}

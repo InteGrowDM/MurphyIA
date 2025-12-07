@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, ArrowRight, Zap, Shield, type LucideIcon } from 'lucide-react';
+import { Activity, Users, ArrowRight, Zap, Shield, Stethoscope, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
+import { getHomeRoute } from '@/lib/navigation';
 
 interface RoleOption {
   role: UserRole;
@@ -30,12 +31,20 @@ const Index = () => {
       description: 'Acompaña a un paciente en su seguimiento diario.',
       icon: Users,
       color: 'from-info to-cyan-400'
+    },
+    {
+      role: 'doctor',
+      label: 'Médico',
+      description: 'Gestiona y da seguimiento a todos tus pacientes.',
+      icon: Stethoscope,
+      color: 'from-emerald-600 to-emerald-400'
     }
   ];
 
   const handleContinue = () => {
     if (selectedRole) {
-      navigate('/dashboard', { state: { role: selectedRole } });
+      const targetPath = getHomeRoute(selectedRole);
+      navigate(targetPath, { state: { role: selectedRole } });
     }
   };
 
@@ -108,13 +117,13 @@ const Index = () => {
         </div>
 
         {/* Role Selection */}
-        <div className="w-full max-w-3xl mx-auto animate-fade-up stagger-3">
+        <div className="w-full max-w-4xl mx-auto animate-fade-up stagger-3">
           <p className="text-center text-muted-foreground mb-6 text-hig-base" id="role-selection-label">
             Selecciona tu rol para continuar
           </p>
           
           <div 
-            className="grid md:grid-cols-2 gap-4 mb-8"
+            className="grid md:grid-cols-3 gap-4 mb-8"
             role="radiogroup"
             aria-labelledby="role-selection-label"
           >
