@@ -1,31 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Settings, 
-  Syringe, 
-  Activity, 
-  Bell, 
-  LayoutDashboard,
-  type LucideIcon
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UserRole } from '@/types/diabetes';
+import { getMobileNavItems } from '@/lib/navigation';
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  isCenter?: boolean;
+interface MobileBottomNavProps {
+  userRole: UserRole;
 }
 
-const navItems: NavItem[] = [
-  { label: 'Alertas', href: '/alertas', icon: Bell },
-  { label: 'Insulina', href: '/insulina', icon: Syringe },
-  { label: 'Glucometrías', href: '/glucometrias', icon: Activity, isCenter: true },
-  { label: 'Ajustes', href: '/configuracion', icon: Settings },
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-];
-
-export function MobileBottomNav() {
+export function MobileBottomNav({ userRole }: MobileBottomNavProps) {
   const location = useLocation();
+  const navItems = getMobileNavItems(userRole);
   
   const isActive = (path: string) => location.pathname === path;
 

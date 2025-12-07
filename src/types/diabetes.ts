@@ -1,4 +1,4 @@
-export type UserRole = 'patient' | 'coadmin';
+export type UserRole = 'patient' | 'coadmin' | 'doctor';
 
 // View modes for glucose history
 export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'quarterly';
@@ -174,6 +174,15 @@ export interface Coadmin {
   telegramConnected: boolean;
 }
 
+export interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  licenseNumber: string;
+  avatar: string | null;
+  patientIds: string[];
+}
+
 export interface AIReportSummary {
   avgGlucose: number;
   stdDev: number;
@@ -195,6 +204,7 @@ export interface AIReport {
 export interface MockData {
   patients: Patient[];
   coadmins: Coadmin[];
+  doctors: Doctor[];
   aiReports: AIReport[];
 }
 

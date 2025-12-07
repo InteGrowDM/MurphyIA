@@ -181,6 +181,24 @@
     { "id": "ca003", "name": "Miguel Fernández", "patientId": "p004", "telegramConnected": false },
     { "id": "ca004", "name": "Pedro Gómez", "patientId": "p005", "telegramConnected": true }
   ],
+  "doctors": [
+    {
+      "id": "d001",
+      "name": "Dr. Alejandro Méndez",
+      "specialty": "Endocrinología",
+      "licenseNumber": "MED-12345",
+      "avatar": null,
+      "patientIds": ["p001", "p002", "p003"]
+    },
+    {
+      "id": "d002",
+      "name": "Dra. Carmen Vega",
+      "specialty": "Medicina Interna",
+      "licenseNumber": "MED-67890",
+      "avatar": null,
+      "patientIds": ["p004", "p005"]
+    }
+  ],
   "aiReports": [
     {
       "id": "r001",
