@@ -12,11 +12,12 @@
       "xpLevel": 78,
       "streak": 12,
       "glucometrias": [
-        { "id": "g001", "value": 142, "timestamp": "2024-12-06T07:30:00Z", "type": "fasting" },
-        { "id": "g002", "value": 168, "timestamp": "2024-12-06T13:00:00Z", "type": "postprandial" },
-        { "id": "g003", "value": 125, "timestamp": "2024-12-06T19:30:00Z", "type": "preprandial" },
-        { "id": "g004", "value": 138, "timestamp": "2024-12-05T07:45:00Z", "type": "fasting" },
-        { "id": "g005", "value": 185, "timestamp": "2024-12-05T13:15:00Z", "type": "postprandial" }
+        { "id": "g001", "value": 142, "timestamp": "2024-12-06T07:30:00Z", "type": "before_breakfast" },
+        { "id": "g002", "value": 168, "timestamp": "2024-12-06T09:15:00Z", "type": "after_breakfast" },
+        { "id": "g003", "value": 125, "timestamp": "2024-12-06T12:00:00Z", "type": "before_lunch" },
+        { "id": "g004", "value": 155, "timestamp": "2024-12-06T14:30:00Z", "type": "after_lunch" },
+        { "id": "g005", "value": 138, "timestamp": "2024-12-05T07:45:00Z", "type": "before_breakfast" },
+        { "id": "g006", "value": 185, "timestamp": "2024-12-05T09:30:00Z", "type": "after_breakfast" }
       ],
       "insulina": [
         { "id": "i001", "units": 12, "type": "rapid", "timestamp": "2024-12-06T07:35:00Z" },
@@ -35,7 +36,7 @@
       ],
       "mareos": [],
       "alertas": [
-        { "id": "a001", "type": "hyperglycemia", "severity": "warning", "message": "Glucosa postprandial elevada: 185 mg/dL", "timestamp": "2024-12-05T13:15:00Z", "resolved": false }
+        { "id": "a001", "type": "hyperglycemia", "severity": "warning", "message": "Glucosa después del desayuno elevada: 185 mg/dL", "timestamp": "2024-12-05T09:30:00Z", "resolved": false }
       ]
     },
     {
@@ -50,9 +51,9 @@
       "xpLevel": 45,
       "streak": 5,
       "glucometrias": [
-        { "id": "g006", "value": 198, "timestamp": "2024-12-06T08:00:00Z", "type": "fasting" },
-        { "id": "g007", "value": 245, "timestamp": "2024-12-06T14:00:00Z", "type": "postprandial" },
-        { "id": "g008", "value": 178, "timestamp": "2024-12-05T08:15:00Z", "type": "fasting" }
+        { "id": "g007", "value": 198, "timestamp": "2024-12-06T07:00:00Z", "type": "before_breakfast" },
+        { "id": "g008", "value": 245, "timestamp": "2024-12-06T14:00:00Z", "type": "after_lunch" },
+        { "id": "g009", "value": 178, "timestamp": "2024-12-05T07:15:00Z", "type": "before_breakfast" }
       ],
       "insulina": [
         { "id": "i004", "units": 16, "type": "rapid", "timestamp": "2024-12-06T08:05:00Z" },
@@ -68,8 +69,8 @@
       ],
       "mareos": [],
       "alertas": [
-        { "id": "a002", "type": "hyperglycemia", "severity": "critical", "message": "Glucosa en ayunas muy elevada: 198 mg/dL", "timestamp": "2024-12-06T08:00:00Z", "resolved": false },
-        { "id": "a003", "type": "hyperglycemia", "severity": "critical", "message": "Pico postprandial peligroso: 245 mg/dL", "timestamp": "2024-12-06T14:00:00Z", "resolved": false }
+        { "id": "a002", "type": "hyperglycemia", "severity": "critical", "message": "Glucosa antes del desayuno muy elevada: 198 mg/dL", "timestamp": "2024-12-06T07:00:00Z", "resolved": false },
+        { "id": "a003", "type": "hyperglycemia", "severity": "critical", "message": "Pico después del almuerzo peligroso: 245 mg/dL", "timestamp": "2024-12-06T14:00:00Z", "resolved": false }
       ]
     },
     {
@@ -84,10 +85,13 @@
       "xpLevel": 92,
       "streak": 28,
       "glucometrias": [
-        { "id": "g009", "value": 98, "timestamp": "2024-12-06T07:00:00Z", "type": "fasting" },
-        { "id": "g010", "value": 132, "timestamp": "2024-12-06T13:30:00Z", "type": "postprandial" },
-        { "id": "g011", "value": 115, "timestamp": "2024-12-06T19:00:00Z", "type": "preprandial" },
-        { "id": "g012", "value": 105, "timestamp": "2024-12-05T07:15:00Z", "type": "fasting" }
+        { "id": "g010", "value": 98, "timestamp": "2024-12-06T07:00:00Z", "type": "before_breakfast" },
+        { "id": "g011", "value": 132, "timestamp": "2024-12-06T09:30:00Z", "type": "after_breakfast" },
+        { "id": "g012", "value": 115, "timestamp": "2024-12-06T12:00:00Z", "type": "before_lunch" },
+        { "id": "g013", "value": 145, "timestamp": "2024-12-06T14:15:00Z", "type": "after_lunch" },
+        { "id": "g014", "value": 108, "timestamp": "2024-12-06T19:00:00Z", "type": "before_dinner" },
+        { "id": "g015", "value": 125, "timestamp": "2024-12-06T21:00:00Z", "type": "after_dinner" },
+        { "id": "g016", "value": 105, "timestamp": "2024-12-05T07:15:00Z", "type": "before_breakfast" }
       ],
       "insulina": [
         { "id": "i006", "units": 8, "type": "rapid", "timestamp": "2024-12-06T07:05:00Z" },
@@ -118,9 +122,9 @@
       "xpLevel": 34,
       "streak": 2,
       "glucometrias": [
-        { "id": "g013", "value": 68, "timestamp": "2024-12-06T06:30:00Z", "type": "fasting" },
-        { "id": "g014", "value": 145, "timestamp": "2024-12-06T12:45:00Z", "type": "postprandial" },
-        { "id": "g015", "value": 72, "timestamp": "2024-12-05T03:00:00Z", "type": "random" }
+        { "id": "g017", "value": 68, "timestamp": "2024-12-06T07:30:00Z", "type": "before_breakfast" },
+        { "id": "g018", "value": 145, "timestamp": "2024-12-06T09:45:00Z", "type": "after_breakfast" },
+        { "id": "g019", "value": 72, "timestamp": "2024-12-05T03:00:00Z", "type": "nocturnal" }
       ],
       "insulina": [
         { "id": "i010", "units": 14, "type": "rapid", "timestamp": "2024-12-06T06:35:00Z" },
@@ -135,7 +139,7 @@
       ],
       "mareos": [],
       "alertas": [
-        { "id": "a004", "type": "hypoglycemia", "severity": "critical", "message": "Episodio hipoglucémico nocturno: 68 mg/dL", "timestamp": "2024-12-06T06:30:00Z", "resolved": false },
+        { "id": "a004", "type": "hypoglycemia", "severity": "critical", "message": "Episodio hipoglucémico antes del desayuno: 68 mg/dL", "timestamp": "2024-12-06T07:30:00Z", "resolved": false },
         { "id": "a005", "type": "hypoglycemia", "severity": "warning", "message": "Glucosa baja nocturna: 72 mg/dL", "timestamp": "2024-12-05T03:00:00Z", "resolved": true }
       ]
     },
@@ -151,10 +155,12 @@
       "xpLevel": 67,
       "streak": 15,
       "glucometrias": [
-        { "id": "g016", "value": 88, "timestamp": "2024-12-06T07:15:00Z", "type": "fasting" },
-        { "id": "g017", "value": 128, "timestamp": "2024-12-06T09:15:00Z", "type": "postprandial" },
-        { "id": "g018", "value": 95, "timestamp": "2024-12-06T13:15:00Z", "type": "preprandial" },
-        { "id": "g019", "value": 135, "timestamp": "2024-12-06T15:15:00Z", "type": "postprandial" }
+        { "id": "g020", "value": 88, "timestamp": "2024-12-06T07:15:00Z", "type": "before_breakfast" },
+        { "id": "g021", "value": 128, "timestamp": "2024-12-06T09:15:00Z", "type": "after_breakfast" },
+        { "id": "g022", "value": 95, "timestamp": "2024-12-06T12:15:00Z", "type": "before_lunch" },
+        { "id": "g023", "value": 135, "timestamp": "2024-12-06T14:15:00Z", "type": "after_lunch" },
+        { "id": "g024", "value": 92, "timestamp": "2024-12-06T19:00:00Z", "type": "before_dinner" },
+        { "id": "g025", "value": 118, "timestamp": "2024-12-06T21:15:00Z", "type": "after_dinner" }
       ],
       "insulina": [],
       "sueno": [
