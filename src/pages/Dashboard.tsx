@@ -51,10 +51,10 @@ export default function Dashboard() {
     hasSleepLogged: !!sleepData,
     hasStressLogged: !!stressData,
     streakDays: currentPatient.streak,
-    totalAccumulatedXP: currentPatient.xpLevel * 10, // Mock: convert level to XP
+    totalAccumulatedXP: currentPatient.xpLevel * 10,
   });
 
-  // Stats cards data - simplified for patient/coadmin
+  // Stats cards data
   const stats = [
     {
       label: 'Última glucosa',
@@ -114,7 +114,7 @@ export default function Dashboard() {
         </p>
       </header>
 
-      {/* Stats Grid - HIG: consistent spacing */}
+      {/* Stats Grid */}
       <section 
         className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
         role="list"
@@ -143,6 +143,18 @@ export default function Dashboard() {
         ))}
       </section>
 
+      {/* Bienestar Diario - Full width, above the main grid */}
+      <section className="mb-6">
+        <HabitTrackerCard 
+          sleepData={sleepData}
+          stressData={stressData}
+          dizzinessData={dizzinessData}
+          onSleepClick={() => setSleepDialogOpen(true)}
+          onStressClick={() => setStressDialogOpen(true)}
+          onDizzinessClick={() => setDizzinessDialogOpen(true)}
+        />
+      </section>
+
       {/* Main content grid */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column - Charts & Data */}
@@ -153,6 +165,28 @@ export default function Dashboard() {
             <PatientCard patient={currentPatient} />
           )}
         </div>
+
+        {/* Right Column - XP & Alerts */}
+        <div className="space-y-6">
+          <XPDonut 
+            totalXP={xpResult.levelInfo.currentLevelXP + (xpResult.levelInfo.level - 1) * 300}
+            todayXP={xpResult.finalXP}
+            currentLevelXP={xpResult.levelInfo.currentLevelXP}
+            nextLevelThreshold={xpResult.levelInfo.nextLevelThreshold}
+            streak={xpResult.streakDays}
+            levelTitle={xpResult.levelInfo.title}
+            streakMultiplier={xpResult.streakMultiplier}
+            slotsToday={xpResult.slotsCompleted}
+            progressPercent={xpResult.levelInfo.progressPercent}
+          />
+          
+          <AlertsPanel 
+            alerts={currentPatient.alertas}
+            compact
+          />
+        </div>
+      </div>
+
       {/* Wellness Dialogs */}
       <DailyLogInputDialog
         open={sleepDialogOpen}
@@ -179,36 +213,5 @@ export default function Dashboard() {
         onSave={handleSaveDizziness}
       />
     </DashboardLayout>
-        {/* Right Column - Tracking & XP */}
-        <div className="space-y-6">
-          <XPDonut 
-            totalXP={xpResult.levelInfo.currentLevelXP + (xpResult.levelInfo.level - 1) * 300}
-            todayXP={xpResult.finalXP}
-            currentLevelXP={xpResult.levelInfo.currentLevelXP}
-            nextLevelThreshold={xpResult.levelInfo.nextLevelThreshold}
-            streak={xpResult.streakDays}
-            levelTitle={xpResult.levelInfo.title}
-            streakMultiplier={xpResult.streakMultiplier}
-            slotsToday={xpResult.slotsCompleted}
-            progressPercent={xpResult.levelInfo.progressPercent}
-          />
-          
-          <HabitTrackerCard 
-            sleepData={sleepData}
-            stressData={stressData}
-            dizzinessData={dizzinessData}
-            onSleepClick={() => setSleepDialogOpen(true)}
-            onStressClick={() => setStressDialogOpen(true)}
-            onDizzinessClick={() => setDizzinessDialogOpen(true)}
-          />
-          
-          <AlertsPanel 
-            alerts={currentPatient.alertas}
-            compact
-          />
-        </div>
-      </div>
-
-     
   );
 }
