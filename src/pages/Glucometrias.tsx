@@ -155,7 +155,7 @@ export default function Glucometrias() {
               <Button
                 variant="outline"
                 className={cn(
-                  "justify-start text-left font-normal h-12 px-4 w-full",
+                  "justify-start text-left font-normal h-12 px-4 w-auto",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
