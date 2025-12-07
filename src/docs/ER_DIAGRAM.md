@@ -20,77 +20,77 @@
         │                             │ telegram_connected   │
         │ 1:N                         │ xp_level             │
         ▼                             │ streak               │
-┌──────────────────┐                  │ doctor_id (FK)       │
-│   USER_ROLES     │                  └──────────────────────┘
-├──────────────────┤                           │
-│ id (PK)          │                           │ 1:N
-│ profile_id (FK)  │                           ▼
-│ role (ENUM)      │                  ┌──────────────────────┐
-│ assigned_at      │                  │    GLUCOMETRIAS      │
-└──────────────────┘                  ├──────────────────────┤
-                                      │ id (PK, UUID)        │
-                                      │ patient_id (FK)      │
-┌──────────────────┐                  │ value (INTEGER)      │
-│  COADMIN_MAPPING │                  │ type (ENUM)          │
-├──────────────────┤                  │ timestamp            │
-│ id (PK)          │                  │ notes                │
-│ coadmin_id (FK)  │                  └──────────────────────┘
-│ patient_id (FK)  │
-│ permissions      │                  ┌──────────────────────┐
-│ assigned_at      │                  │      INSULINA        │
-└──────────────────┘                  ├──────────────────────┤
-                                      │ id (PK, UUID)        │
-                                      │ patient_id (FK)      │
-┌──────────────────┐                  │ units (INTEGER)      │
-│     DOCTORS      │                  │ type (ENUM)          │
-├──────────────────┤                  │ timestamp            │
-│ id (PK, UUID)    │                  │ notes                │
-│ profile_id (FK)  │                  └──────────────────────┘
-│ specialty        │
-│ license_number   │                  ┌──────────────────────┐
-│ verified         │                  │       SUENO          │
-└──────────────────┘                  ├──────────────────────┤
-        │                             │ id (PK, UUID)        │
-        │ 1:N                         │ patient_id (FK)      │
-        ▼                             │ hours (DECIMAL)      │
-┌──────────────────┐                  │ quality (1-10)       │
-│  DOCTOR_PATIENTS │                  │ date                 │
-├──────────────────┤                  └──────────────────────┘
-│ id (PK)          │
-│ doctor_id (FK)   │                  ┌──────────────────────┐
-│ patient_id (FK)  │                  │       ESTRES         │
+┌──────────────────┐                  └──────────────────────┘
+│   USER_ROLES     │                           │
+├──────────────────┤                           │ 1:N
+│ id (PK)          │                           ▼
+│ profile_id (FK)  │                  ┌──────────────────────┐
+│ role (ENUM)      │                  │    GLUCOMETRIAS      │
 │ assigned_at      │                  ├──────────────────────┤
-│ status           │                  │ id (PK, UUID)        │
-└──────────────────┘                  │ patient_id (FK)      │
+└──────────────────┘                  │ id (PK, UUID)        │
+                                      │ patient_id (FK)      │
+                                      │ value (INTEGER)      │
+┌──────────────────┐                  │ type (ENUM)          │
+│  COADMIN_MAPPING │                  │ timestamp            │
+├──────────────────┤                  │ notes                │
+│ id (PK)          │                  └──────────────────────┘
+│ coadmin_id (FK)  │
+│ patient_id (FK)  │                  ┌──────────────────────┐
+│ permissions      │                  │      INSULINA        │
+│ assigned_at      │                  ├──────────────────────┤
+└──────────────────┘                  │ id (PK, UUID)        │
+                                      │ patient_id (FK)      │
+                                      │ units (INTEGER)      │
+                                      │ type (ENUM)          │
+                                      │ timestamp            │
+                                      │ notes                │
+                                      └──────────────────────┘
+
+                                      ┌──────────────────────┐
+                                      │       SUENO          │
+                                      ├──────────────────────┤
+                                      │ id (PK, UUID)        │
+                                      │ patient_id (FK)      │
+                                      │ hours (DECIMAL)      │
+                                      │ quality (1-10)       │
+                                      │ date                 │
+                                      └──────────────────────┘
+
+                                      ┌──────────────────────┐
+                                      │       ESTRES         │
+                                      ├──────────────────────┤
+                                      │ id (PK, UUID)        │
+                                      │ patient_id (FK)      │
                                       │ level (1-10)         │
                                       │ timestamp            │
-┌──────────────────┐                  │ notes                │
-│     ALERTAS      │                  └──────────────────────┘
-├──────────────────┤
-│ id (PK, UUID)    │
-│ patient_id (FK)  │                  ┌──────────────────────┐
-│ type (ENUM)      │                  │   AI_REPORTS         │
-│ severity (ENUM)  │                  ├──────────────────────┤
-│ message          │                  │ id (PK, UUID)        │
-│ timestamp        │                  │ patient_id (FK)      │
-│ resolved         │                  │ generated_at         │
-│ resolved_by      │                  │ summary (JSONB)      │
-│ resolved_at      │                  │ recommendations[]    │
-└──────────────────┘                  │ pdf_url              │
+                                      │ notes                │
                                       └──────────────────────┘
 
 ┌──────────────────┐
-│  NOTIFICATIONS   │                  ┌──────────────────────┐
-├──────────────────┤                  │    AUDIT_LOGS        │
-│ id (PK, UUID)    │                  ├──────────────────────┤
-│ user_id (FK)     │                  │ id (PK, UUID)        │
-│ type             │                  │ user_id (FK)         │
-│ title            │                  │ action               │
-│ message          │                  │ entity_type          │
-│ read             │                  │ entity_id            │
-│ created_at       │                  │ old_values (JSONB)   │
-└──────────────────┘                  │ new_values (JSONB)   │
-                                      │ ip_address           │
+│     ALERTAS      │
+├──────────────────┤
+│ id (PK, UUID)    │
+│ patient_id (FK)  │
+│ type (ENUM)      │
+│ severity (ENUM)  │
+│ message          │
+│ timestamp        │
+│ resolved         │
+│ resolved_by      │
+│ resolved_at      │
+└──────────────────┘
+
+┌──────────────────┐                  ┌──────────────────────┐
+│  NOTIFICATIONS   │                  │    AUDIT_LOGS        │
+├──────────────────┤                  ├──────────────────────┤
+│ id (PK, UUID)    │                  │ id (PK, UUID)        │
+│ user_id (FK)     │                  │ user_id (FK)         │
+│ type             │                  │ action               │
+│ title            │                  │ entity_type          │
+│ message          │                  │ entity_id            │
+│ read             │                  │ old_values (JSONB)   │
+│ created_at       │                  │ new_values (JSONB)   │
+└──────────────────┘                  │ ip_address           │
                                       │ timestamp            │
                                       └──────────────────────┘
 ```
@@ -114,7 +114,7 @@ CREATE TYPE alert_severity AS ENUM ('info', 'warning', 'critical');
 CREATE TYPE alert_type AS ENUM ('hypoglycemia', 'hyperglycemia', 'missed_dose', 'pattern', 'streak', 'reminder');
 
 -- Roles de usuario
-CREATE TYPE user_role AS ENUM ('patient', 'coadmin', 'doctor');
+CREATE TYPE user_role AS ENUM ('patient', 'coadmin');
 ```
 
 ## Relaciones Clave
@@ -127,8 +127,6 @@ CREATE TYPE user_role AS ENUM ('patient', 'coadmin', 'doctor');
 6. **Patient_Profiles → Estres**: 1:N
 7. **Patient_Profiles → Alertas**: 1:N
 8. **Coadmin_Mapping**: Relaciona coadmin con paciente (1 coadmin por paciente)
-9. **Doctor_Patients**: Relaciona médicos con pacientes (N:N)
-10. **AI_Reports**: Reportes generados por Shaun Murphy IA
 
 ## Notas de Seguridad
 
