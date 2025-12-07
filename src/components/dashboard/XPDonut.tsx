@@ -73,10 +73,10 @@ export function XPDonut({
       className="glass-card p-6 animate-fade-up"
       aria-labelledby="xp-donut-title"
     >
-      <div className="flex flex-col md:flex-row items-center gap-6">
+      <div className="flex flex-col items-center gap-6">
         {/* Donut Chart */}
         <div 
-          className="relative shrink-0"
+          className="relative"
           role="img"
           aria-label={`Nivel XP: ${animatedProgress.toFixed(0)}%`}
         >
@@ -132,8 +132,8 @@ export function XPDonut({
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex-1 space-y-4">
+        {/* Stats - centered with max width */}
+        <div className="w-full max-w-xs space-y-4 text-center">
           <div>
             <h3 id="xp-donut-title" className="font-semibold text-hig-lg text-foreground mb-1 leading-hig-tight">
               {levelTitle}
