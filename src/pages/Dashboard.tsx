@@ -5,7 +5,7 @@ import { PatientCard } from '@/components/dashboard/PatientCard';
 import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
-import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
 import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
@@ -166,7 +166,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Right Column - XP & Alerts (full on mobile, half on tablet, 1/3 on desktop) */}
+        {/* Right Column - XP (full on mobile, half on tablet, 1/3 on desktop) */}
         <div className="md:col-span-1 lg:col-span-1 space-y-6">
           <XPDonut 
             totalXP={xpResult.levelInfo.currentLevelXP + (xpResult.levelInfo.level - 1) * 300}
@@ -178,11 +178,6 @@ export default function Dashboard() {
             streakMultiplier={xpResult.streakMultiplier}
             slotsToday={xpResult.slotsCompleted}
             progressPercent={xpResult.levelInfo.progressPercent}
-          />
-          
-          <AlertsPanel 
-            alerts={currentPatient.alertas}
-            compact
           />
         </div>
       </div>
