@@ -95,6 +95,12 @@ export interface InsulinDose {
   notes?: string;
 }
 
+export interface InsulinSchedule {
+  type: 'rapid' | 'basal';
+  timesPerDay: number;
+  unitsPerDose: number;
+}
+
 export interface SleepRecord {
   id: string;
   hours: number;
