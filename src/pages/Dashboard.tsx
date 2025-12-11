@@ -8,6 +8,7 @@ import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
+import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
 import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
@@ -16,7 +17,10 @@ import { isSameDay } from 'date-fns';
 
 export default function Dashboard() {
   const location = useLocation();
-  const userRole = (location.state?.role as UserRole) || 'patient';
+  const { userRole: authRole, profile, isDemoMode, demoRole } = useAuth();
+  
+  // Use auth role if available, fallback to location state for demo mode compatibility
+  const userRole: UserRole = authRole || demoRole || (location.state?.role as UserRole) || 'patient';
 
   // Dialog states for wellness tracking
   const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
@@ -28,14 +32,18 @@ export default function Dashboard() {
   const [stressData, setStressData] = useState<{ level: number } | null>(null);
   const [dizzinessData, setDizzinessData] = useState<{ severity: number; count: number } | null>(null);
 
-  // Get mock data
+  // Get mock data for demo mode
   const patients = mockData.patients as Patient[];
   
   // For demo, use first patient as current user
   const currentPatient = patients[0];
-  const userName = userRole === 'coadmin' 
-    ? mockData.coadmins[0].name 
-    : currentPatient.name;
+  
+  // Get user name from auth profile or mock data
+  const userName = profile?.full_name || (
+    userRole === 'coadmin' 
+      ? mockData.coadmins[0].name 
+      : currentPatient.name
+  );
 
   // Get today's glucose records
   const todayGlucoseRecords = useMemo(() => {
@@ -110,7 +118,7 @@ export default function Dashboard() {
           Mi Dashboard
         </h1>
         <p className="text-muted-foreground text-hig-base leading-hig-normal">
-          Bienvenido de vuelta. Aquí tienes tu resumen del día.
+          Bienvenido de vuelta{userName ? `, ${userName.split(' ')[0]}` : ''}. Aquí tienes tu resumen del día.
         </p>
       </header>
 

@@ -1,0 +1,222 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { UserRole } from '@/types/diabetes';
+import { AuthContextType, Profile, PatientProfile, PatientRegistrationData, Gender } from '@/types/auth';
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoRole, setDemoRole] = useState<UserRole | null>(null);
+
+  // Fetch user profile and role
+  const fetchUserData = async (userId: string) => {
+    try {
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (profileData) {
+        setProfile(profileData as Profile);
+      }
+
+      // Fetch user role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (roleData) {
+        setUserRole(roleData.role as UserRole);
+      }
+
+      // If patient, fetch patient profile
+      if (roleData?.role === 'patient') {
+        const { data: patientData } = await supabase
+          .from('patient_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        if (patientData) {
+          setPatientProfile(patientData as PatientProfile);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Defer Supabase calls with setTimeout to prevent deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserData(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+          setUserRole(null);
+          setPatientProfile(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserData(session.user.id);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error: error ? new Error(error.message) : null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
+  const signUp = async (data: PatientRegistrationData) => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+
+      // 1. Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: data.fullName,
+            phone: data.phone,
+          },
+        },
+      });
+
+      if (authError) {
+        return { error: new Error(authError.message) };
+      }
+
+      if (!authData.user) {
+        return { error: new Error('No se pudo crear el usuario') };
+      }
+
+      const userId = authData.user.id;
+
+      // 2. Insert user role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'patient' as const,
+        });
+
+      if (roleError) {
+        console.error('Error inserting role:', roleError);
+        return { error: new Error('Error al asignar rol de paciente') };
+      }
+
+      // 3. Insert patient profile
+      const { error: patientError } = await supabase
+        .from('patient_profiles')
+        .insert({
+          user_id: userId,
+          gender: data.gender as Gender,
+          id_number: data.idNumber,
+          birth_date: data.birthDate.toISOString().split('T')[0],
+          diabetes_type: data.diabetesType,
+          diagnosis_year: data.diagnosisYear,
+          city: data.city,
+          estrato: data.estrato,
+          coadmin_name: data.coadminName || null,
+          coadmin_phone: data.coadminPhone || null,
+          coadmin_email: data.coadminEmail || null,
+        });
+
+      if (patientError) {
+        console.error('Error inserting patient profile:', patientError);
+        return { error: new Error('Error al crear perfil de paciente') };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setUserRole(null);
+    setPatientProfile(null);
+    setIsDemoMode(false);
+    setDemoRole(null);
+  };
+
+  const enterDemoMode = (role: UserRole) => {
+    setIsDemoMode(true);
+    setDemoRole(role);
+    setIsLoading(false);
+  };
+
+  const exitDemoMode = () => {
+    setIsDemoMode(false);
+    setDemoRole(null);
+  };
+
+  const value: AuthContextType = {
+    user,
+    session,
+    userRole: isDemoMode ? demoRole : userRole,
+    profile,
+    patientProfile,
+    isLoading,
+    isDemoMode,
+    demoRole,
+    signIn,
+    signUp,
+    signOut,
+    enterDemoMode,
+    exitDemoMode,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
