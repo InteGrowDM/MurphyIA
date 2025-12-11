@@ -2,7 +2,16 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/diabetes';
-import { AuthContextType, Profile, PatientProfile, PatientRegistrationData, Gender } from '@/types/auth';
+import { 
+  AuthContextType, 
+  Profile, 
+  PatientProfile, 
+  CoadminProfile,
+  PatientRegistrationData, 
+  CoadminRegistrationData,
+  CoadminEmailCheckResult,
+  Gender 
+} from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -12,6 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(null);
+  const [coadminProfile, setCoadminProfile] = useState<CoadminProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
@@ -51,6 +61,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (patientData) {
           setPatientProfile(patientData as PatientProfile);
+        }
+      }
+
+      // If coadmin, fetch coadmin profile
+      if (roleData?.role === 'coadmin') {
+        const { data: coadminData } = await supabase
+          .from('coadmin_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        if (coadminData) {
+          setCoadminProfile(coadminData as CoadminProfile);
         }
       }
     } catch (error) {
@@ -161,6 +184,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const checkCoadminEmail = async (email: string): Promise<CoadminEmailCheckResult | null> => {
+    try {
+      const { data, error } = await supabase.rpc('is_authorized_coadmin_email', {
+        _email: email,
+      });
+
+      if (error || !data || data.length === 0) {
+        return null;
+      }
+
+      return data[0] as CoadminEmailCheckResult;
+    } catch (error) {
+      console.error('Error checking coadmin email:', error);
+      return null;
+    }
+  };
+
+  const signUpAsCoadmin = async (data: CoadminRegistrationData) => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: data.fullName,
+            phone: data.phone,
+            role: 'coadmin',
+            patient_id: data.patientId,
+          },
+        },
+      });
+
+      if (authError) {
+        return { error: new Error(authError.message) };
+      }
+
+      if (!authData.user) {
+        return { error: new Error('No se pudo crear el usuario') };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -168,6 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
     setUserRole(null);
     setPatientProfile(null);
+    setCoadminProfile(null);
     setIsDemoMode(false);
     setDemoRole(null);
   };
@@ -189,11 +262,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userRole: isDemoMode ? demoRole : userRole,
     profile,
     patientProfile,
+    coadminProfile,
     isLoading,
     isDemoMode,
     demoRole,
     signIn,
     signUp,
+    signUpAsCoadmin,
+    checkCoadminEmail,
     signOut,
     enterDemoMode,
     exitDemoMode,
