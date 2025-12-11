@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, ArrowRight, Zap, Shield, Stethoscope, type LucideIcon } from 'lucide-react';
+import { Activity, Users, ArrowRight, Zap, Shield, Stethoscope, UserPlus, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserRole } from '@/types/diabetes';
 import { getHomeRoute } from '@/lib/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 interface RoleOption {
   role: UserRole;
@@ -15,7 +17,16 @@ interface RoleOption {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { session, userRole, isLoading, enterDemoMode } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (!isLoading && session && userRole) {
+      const targetPath = getHomeRoute(userRole);
+      navigate(targetPath, { replace: true });
+    }
+  }, [session, userRole, isLoading, navigate]);
 
   const roles: RoleOption[] = [
     {
@@ -41,11 +52,20 @@ const Index = () => {
     }
   ];
 
-  const handleContinue = () => {
+  const handleDemoMode = () => {
     if (selectedRole) {
+      enterDemoMode(selectedRole);
       const targetPath = getHomeRoute(selectedRole);
       navigate(targetPath, { state: { role: selectedRole } });
     }
+  };
+
+  const handleCreateAccount = () => {
+    navigate('/auth?mode=register');
+  };
+
+  const handleLogin = () => {
+    navigate('/auth?mode=login');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, role: UserRole) => {
@@ -54,6 +74,18 @@ const Index = () => {
       setSelectedRole(role);
     }
   };
+
+  // Show loading while checking auth state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Activity className="h-8 w-8 animate-pulse text-primary" />
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col safe-area-inset">
@@ -84,6 +116,14 @@ const Index = () => {
               <span className="text-hig-xs text-muted-foreground">Pro Edition</span>
             </div>
           </div>
+          
+          {/* Login button in header */}
+          <button
+            onClick={handleLogin}
+            className="text-hig-sm text-primary hover:text-primary/80 transition-colors font-medium"
+          >
+            Iniciar sesión
+          </button>
         </div>
       </header>
 
@@ -99,8 +139,7 @@ const Index = () => {
           </h2>
           
           <p className="text-hig-lg md:text-hig-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-up stagger-1 leading-hig-normal">
-            Plataforma inteligente para el seguimiento de diabetes con integración Telegram 
-            y análisis personalizado.
+            Plataforma inteligente para el seguimiento de diabetes con análisis personalizado.
           </p>
 
           {/* Features */}
@@ -155,19 +194,27 @@ const Index = () => {
             ))}
           </div>
 
-          {/* Continue Button */}
-          <div className="flex justify-center">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
-              onClick={handleContinue}
+              onClick={handleDemoMode}
               disabled={!selectedRole}
               aria-disabled={!selectedRole}
               className={cn(
-                "btn-neon flex items-center gap-2 px-8 py-4 text-hig-lg focus-ring",
+                "flex items-center justify-center gap-2 px-6 py-3 text-hig-base rounded-hig border border-border bg-secondary/50 hover:bg-secondary transition-colors focus-ring",
                 !selectedRole && "opacity-50 cursor-not-allowed pointer-events-none"
               )}
             >
-              Continuar
+              Probar sin cuenta
               <ArrowRight className="w-[var(--icon-md)] h-[var(--icon-md)]" aria-hidden="true" />
+            </button>
+            
+            <button
+              onClick={handleCreateAccount}
+              className="btn-neon flex items-center justify-center gap-2 px-6 py-3 text-hig-base focus-ring"
+            >
+              <UserPlus className="w-[var(--icon-md)] h-[var(--icon-md)]" aria-hidden="true" />
+              Crear cuenta
             </button>
           </div>
         </div>

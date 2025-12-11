@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { User, Bell, Shield, Smartphone, ChevronRight } from 'lucide-react';
+import { User, Bell, Shield, Smartphone, ChevronRight, LogOut } from 'lucide-react';
 import { UserRole } from '@/types/diabetes';
+import { useAuth } from '@/contexts/AuthContext';
 import { PersonalDataSheet } from '@/components/settings/PersonalDataSheet';
 import { SecuritySheet } from '@/components/settings/SecuritySheet';
 import { NotificationsSheet } from '@/components/settings/NotificationsSheet';
 import { DevicesSheet } from '@/components/settings/DevicesSheet';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 type SettingsSection = 'personal' | 'security' | 'notifications' | 'devices';
 
@@ -37,7 +42,15 @@ const settingsItems = [
 ];
 
 export default function Configuracion() {
-  const userRole: UserRole = 'patient';
+  const location = useLocation();
+  const { userRole: authRole, profile, isDemoMode, demoRole, signOut, exitDemoMode } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  // Use auth role if available, fallback to location state for demo mode compatibility
+  const userRole: UserRole = authRole || demoRole || (location.state?.role as UserRole) || 'patient';
+  const userName = profile?.full_name || 'Usuario';
+  
   const [openSheet, setOpenSheet] = useState<SettingsSection | null>(null);
 
   const handleOpenSheet = (section: SettingsSection) => {
@@ -48,13 +61,39 @@ export default function Configuracion() {
     setOpenSheet(null);
   };
 
+  const handleLogout = async () => {
+    if (isDemoMode) {
+      exitDemoMode();
+      toast({
+        title: 'Modo demo finalizado',
+        description: 'Has salido del modo de prueba',
+      });
+    } else {
+      await signOut();
+      toast({
+        title: 'Sesión cerrada',
+        description: 'Has cerrado sesión correctamente',
+      });
+    }
+    navigate('/');
+  };
+
   return (
-    <DashboardLayout userRole={userRole} userName="Carlos García">
+    <DashboardLayout userRole={userRole} userName={userName}>
       <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Configuración</h1>
           <p className="text-muted-foreground mt-1">Gestiona tu cuenta y preferencias</p>
         </div>
+
+        {/* Demo Mode Banner */}
+        {isDemoMode && (
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-4">
+            <p className="text-warning text-sm font-medium">
+              Estás en modo demo. Los cambios no se guardarán.
+            </p>
+          </div>
+        )}
 
         {/* General Settings */}
         <section className="space-y-4">
@@ -78,6 +117,19 @@ export default function Configuracion() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Logout Section */}
+        <section className="space-y-4">
+          <h2 className="font-semibold text-foreground">Sesión</h2>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-auto py-4 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-5 h-5" />
+            <span>{isDemoMode ? 'Salir del modo demo' : 'Cerrar sesión'}</span>
+          </Button>
         </section>
       </div>
 

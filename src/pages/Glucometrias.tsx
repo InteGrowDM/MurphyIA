@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { GlucoseSlotCard } from '@/components/glucose/GlucoseSlotCard';
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
@@ -12,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGlucoseLog } from '@/hooks/useGlucoseLog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Glucometry, 
   GlucometryType, 
@@ -24,18 +26,24 @@ import { cn } from '@/lib/utils';
 import { format, isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Share2, TrendingUp, Activity } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
 import mockData from '@/data/mockPatients.json';
 
 export default function Glucometrias() {
   const location = useLocation();
-  const userRole = (location.state?.role as UserRole) || 'patient';
+  const { userRole: authRole, profile, isDemoMode, demoRole } = useAuth();
+  
+  // Use auth role if available, fallback to location state for demo mode compatibility
+  const userRole: UserRole = authRole || demoRole || (location.state?.role as UserRole) || 'patient';
   
   const patients = mockData.patients as Patient[];
   const currentPatient = patients[0];
-  const userName = userRole === 'coadmin' 
-    ? mockData.coadmins[0].name 
-    : currentPatient.name;
+  
+  // Get user name from auth profile or mock data
+  const userName = profile?.full_name || (
+    userRole === 'coadmin' 
+      ? mockData.coadmins[0].name 
+      : currentPatient.name
+  );
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
