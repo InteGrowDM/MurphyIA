@@ -131,20 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const userId = authData.user.id;
 
-      // 2. Insert user role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: 'patient' as const,
-        });
+      // Note: user_roles is inserted automatically by handle_new_user trigger
 
-      if (roleError) {
-        console.error('Error inserting role:', roleError);
-        return { error: new Error('Error al asignar rol de paciente') };
-      }
-
-      // 3. Insert patient profile
+      // 2. Insert patient profile
       const { error: patientError } = await supabase
         .from('patient_profiles')
         .insert({
