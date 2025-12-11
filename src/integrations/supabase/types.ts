@@ -14,16 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patient_profiles: {
+        Row: {
+          birth_date: string | null
+          city: string | null
+          coadmin_email: string | null
+          coadmin_name: string | null
+          coadmin_phone: string | null
+          created_at: string | null
+          diabetes_type: string
+          diagnosis_year: number | null
+          estrato: number | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          id: string
+          id_number: string | null
+          streak: number | null
+          updated_at: string | null
+          user_id: string
+          xp_level: number | null
+        }
+        Insert: {
+          birth_date?: string | null
+          city?: string | null
+          coadmin_email?: string | null
+          coadmin_name?: string | null
+          coadmin_phone?: string | null
+          created_at?: string | null
+          diabetes_type: string
+          diagnosis_year?: number | null
+          estrato?: number | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          id_number?: string | null
+          streak?: number | null
+          updated_at?: string | null
+          user_id: string
+          xp_level?: number | null
+        }
+        Update: {
+          birth_date?: string | null
+          city?: string | null
+          coadmin_email?: string | null
+          coadmin_name?: string | null
+          coadmin_phone?: string | null
+          created_at?: string | null
+          diabetes_type?: string
+          diagnosis_year?: number | null
+          estrato?: number | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          id_number?: string | null
+          streak?: number | null
+          updated_at?: string | null
+          user_id?: string
+          xp_level?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      gender_type: "masculino" | "femenino" | "otro" | "prefiero_no_decir"
+      user_role: "patient" | "coadmin" | "doctor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +258,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender_type: ["masculino", "femenino", "otro", "prefiero_no_decir"],
+      user_role: ["patient", "coadmin", "doctor"],
+    },
   },
 } as const
