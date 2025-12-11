@@ -53,17 +53,42 @@ export interface PatientRegistrationData {
   noCoadmin?: boolean;
 }
 
+export interface CoadminProfile {
+  id: string;
+  user_id: string;
+  patient_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoadminRegistrationData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phone: string;
+  patientId: string;
+}
+
+export interface CoadminEmailCheckResult {
+  patient_profile_id: string;
+  patient_name: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   session: Session | null;
   userRole: UserRole | null;
   profile: Profile | null;
   patientProfile: PatientProfile | null;
+  coadminProfile: CoadminProfile | null;
   isLoading: boolean;
   isDemoMode: boolean;
   demoRole: UserRole | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (data: PatientRegistrationData) => Promise<{ error: Error | null }>;
+  signUpAsCoadmin: (data: CoadminRegistrationData) => Promise<{ error: Error | null }>;
+  checkCoadminEmail: (email: string) => Promise<CoadminEmailCheckResult | null>;
   signOut: () => Promise<void>;
   enterDemoMode: (role: UserRole) => void;
   exitDemoMode: () => void;

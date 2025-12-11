@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      coadmin_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          patient_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          patient_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coadmin_profiles_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_profiles: {
         Row: {
           birth_date: string | null
@@ -127,6 +159,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      is_authorized_coadmin_email: {
+        Args: { _email: string }
+        Returns: {
+          patient_name: string
+          patient_profile_id: string
+        }[]
       }
     }
     Enums: {
