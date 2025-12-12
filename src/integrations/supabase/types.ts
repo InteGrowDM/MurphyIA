@@ -46,6 +46,50 @@ export type Database = {
           },
         ]
       }
+      glucose_records: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          notes: string | null
+          patient_id: string
+          recorded_at: string
+          time_slot: string
+          updated_at: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          recorded_at?: string
+          time_slot: string
+          updated_at?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          recorded_at?: string
+          time_slot?: string
+          updated_at?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glucose_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_profiles: {
         Row: {
           birth_date: string | null
