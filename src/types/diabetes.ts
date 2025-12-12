@@ -95,11 +95,44 @@ export interface InsulinDose {
   notes?: string;
 }
 
+// Insulin schedule with full tracking support
 export interface InsulinSchedule {
+  id: string;
+  patientId: string;
   type: 'rapid' | 'basal';
   timesPerDay: number;
   unitsPerDose: number;
+  brand?: string;
+  effectiveFrom: string;
+  effectiveUntil?: string;
+  changeReason?: string;
+  orderedBy?: string;
+  changedByUserId?: string;
+  changedByRole?: 'patient' | 'coadmin';
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// Insulin brands for dropdowns
+export const RAPID_INSULIN_BRANDS = [
+  'Humalog (Lispro)',
+  'NovoRapid (Aspart)',
+  'Apidra (Glulisina)',
+  'Fiasp',
+  'Lyumjev',
+  'Otra',
+] as const;
+
+export const BASAL_INSULIN_BRANDS = [
+  'Lantus (Glargina U100)',
+  'Toujeo (Glargina U300)',
+  'Levemir (Detemir)',
+  'Tresiba (Degludec)',
+  'Basaglar',
+  'Otra',
+] as const;
 
 export interface SleepRecord {
   id: string;
