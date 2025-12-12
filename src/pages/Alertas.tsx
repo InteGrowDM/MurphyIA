@@ -1,6 +1,7 @@
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { AICallScheduleManager } from '@/components/alerts/AICallScheduleManager';
 import { Bell, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { UserRole } from '@/types/diabetes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const mockAlerts = [
   { id: 1, type: 'warning', title: 'Glucosa alta detectada', time: 'Hace 2 horas', value: '185 mg/dL' },
@@ -9,10 +10,18 @@ const mockAlerts = [
 ];
 
 export default function Alertas() {
-  const userRole: UserRole = 'patient';
+  const { userRole, user, patientProfile, coadminProfile, profile } = useAuth();
   
+  // Determine patientId based on role
+  const patientId = userRole === 'coadmin' 
+    ? coadminProfile?.patient_id 
+    : patientProfile?.id;
+
+  const userName = profile?.full_name || 'Usuario';
+  const displayRole = userRole || 'patient';
+
   return (
-    <DashboardLayout userRole={userRole} userName="Carlos García">
+    <DashboardLayout userRole={displayRole} userName={userName}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -23,8 +32,22 @@ export default function Alertas() {
             Marcar todas como leídas
           </button>
         </div>
+
+        {/* AI Voice Assistant Section */}
+        {patientId && user && (userRole === 'patient' || userRole === 'coadmin') && (
+          <AICallScheduleManager
+            patientId={patientId}
+            userId={user.id}
+            userRole={userRole}
+          />
+        )}
         
+        {/* Alerts History */}
         <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Bell className="w-5 h-5" />
+            Historial
+          </h2>
           {mockAlerts.map((alert) => (
             <div 
               key={alert.id}
