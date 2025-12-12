@@ -90,6 +90,71 @@ export type Database = {
           },
         ]
       }
+      insulin_schedules: {
+        Row: {
+          brand: string | null
+          change_reason: string | null
+          changed_by_role: string | null
+          changed_by_user_id: string | null
+          created_at: string | null
+          effective_from: string
+          effective_until: string | null
+          id: string
+          insulin_type: string
+          is_active: boolean
+          notes: string | null
+          ordered_by: string | null
+          patient_id: string
+          times_per_day: number
+          units_per_dose: number
+          updated_at: string | null
+        }
+        Insert: {
+          brand?: string | null
+          change_reason?: string | null
+          changed_by_role?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string | null
+          effective_from?: string
+          effective_until?: string | null
+          id?: string
+          insulin_type: string
+          is_active?: boolean
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id: string
+          times_per_day: number
+          units_per_dose: number
+          updated_at?: string | null
+        }
+        Update: {
+          brand?: string | null
+          change_reason?: string | null
+          changed_by_role?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string | null
+          effective_from?: string
+          effective_until?: string | null
+          id?: string
+          insulin_type?: string
+          is_active?: boolean
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id?: string
+          times_per_day?: number
+          units_per_dose?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insulin_schedules_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_profiles: {
         Row: {
           birth_date: string | null
