@@ -227,6 +227,7 @@ export function GlucoseChart({ data, showTargetRange = true, className }: Glucos
                 
                 return (
                   <circle 
+                    key={`dot-${cx}-${cy}`}
                     cx={cx} 
                     cy={cy} 
                     r={4} 

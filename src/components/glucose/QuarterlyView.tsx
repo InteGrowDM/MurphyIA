@@ -145,6 +145,13 @@ export function QuarterlyView({ records, selectedDate, onDateChange }: Quarterly
         </Button>
       </div>
 
+      {/* Trend Chart - Positioned prominently after navigation */}
+      {records.length > 0 && (
+        <div className="glass-card p-4">
+          <GlucoseChart data={records} showTargetRange className="w-full" />
+        </div>
+      )}
+
       {/* Trend Indicator */}
       {stats && (
         <div className="glass-card p-4">
@@ -219,13 +226,6 @@ export function QuarterlyView({ records, selectedDate, onDateChange }: Quarterly
           <p className="text-hig-sm text-muted-foreground mt-1">
             No hay mediciones en este período
           </p>
-        </div>
-      )}
-
-      {/* Trend Chart */}
-      {records.length > 0 && (
-        <div className="glass-card p-4">
-          <GlucoseChart data={records} showTargetRange className="w-full" />
         </div>
       )}
     </div>
