@@ -1,5 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Glucometry, GlucometryType, MEAL_TIME_SLOTS, GLUCOSE_RANGES } from '@/types/diabetes';
+import { useCallback, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Glucometry, GlucometryType, GLUCOSE_RANGES } from '@/types/diabetes';
 import { 
   format, 
   isSameDay, 
@@ -9,6 +11,19 @@ import {
   endOfDay,
   differenceInDays 
 } from 'date-fns';
+
+// Database record type
+interface GlucoseRecord {
+  id: string;
+  patient_id: string;
+  time_slot: string;
+  value: number;
+  recorded_at: string;
+  date: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Statistics interface for period calculations
 export interface PeriodStats {
@@ -69,6 +84,35 @@ export function calculatePeriodStats(
   };
 }
 
+// Map database time_slot to GlucometryType
+function mapTimeSlotToType(timeSlot: string): GlucometryType {
+  const mapping: Record<string, GlucometryType> = {
+    'before_breakfast': 'before_breakfast',
+    'after_breakfast': 'after_breakfast',
+    'before_lunch': 'before_lunch',
+    'after_lunch': 'after_lunch',
+    'before_dinner': 'before_dinner',
+    'after_dinner': 'after_dinner',
+  };
+  return mapping[timeSlot] || 'before_breakfast';
+}
+
+// Map GlucometryType to database time_slot
+function mapTypeToTimeSlot(type: GlucometryType): string {
+  return type;
+}
+
+// Convert database record to Glucometry
+function dbToGlucometry(record: GlucoseRecord): Glucometry {
+  return {
+    id: record.id,
+    value: record.value,
+    type: mapTimeSlotToType(record.time_slot),
+    timestamp: record.recorded_at,
+    notes: record.notes || undefined,
+  };
+}
+
 interface UseGlucoseLogReturn {
   records: Glucometry[];
   todayRecords: Map<GlucometryType, Glucometry>;
@@ -77,10 +121,84 @@ interface UseGlucoseLogReturn {
   getRecordsByDate: (date: Date) => Map<GlucometryType, Glucometry>;
   getRecordsInRange: (start: Date, end: Date) => Glucometry[];
   getSlotRecord: (type: GlucometryType, date?: Date) => Glucometry | undefined;
+  isLoading: boolean;
 }
 
-export function useGlucoseLog(initialRecords: Glucometry[] = []): UseGlucoseLogReturn {
-  const [records, setRecords] = useState<Glucometry[]>(initialRecords);
+export function useGlucoseLog(patientId?: string): UseGlucoseLogReturn {
+  const queryClient = useQueryClient();
+
+  // Fetch all records for the patient
+  const { data: dbRecords = [], isLoading } = useQuery({
+    queryKey: ['glucose-records', patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      
+      const { data, error } = await supabase
+        .from('glucose_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('recorded_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching glucose records:', error);
+        return [];
+      }
+
+      return (data as GlucoseRecord[]).map(dbToGlucometry);
+    },
+    enabled: !!patientId,
+  });
+
+  const records = dbRecords;
+
+  // Add record mutation
+  const addMutation = useMutation({
+    mutationFn: async ({ type, value, notes }: { type: GlucometryType; value: number; notes?: string }) => {
+      if (!patientId) throw new Error('No patient ID');
+
+      const now = new Date();
+      const { data, error } = await supabase
+        .from('glucose_records')
+        .insert({
+          patient_id: patientId,
+          time_slot: mapTypeToTimeSlot(type),
+          value,
+          recorded_at: now.toISOString(),
+          date: format(now, 'yyyy-MM-dd'),
+          notes: notes || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['glucose-records', patientId] });
+    },
+  });
+
+  // Update record mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, value, notes }: { id: string; value: number; notes?: string }) => {
+      const { data, error } = await supabase
+        .from('glucose_records')
+        .update({
+          value,
+          notes: notes || null,
+          recorded_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['glucose-records', patientId] });
+    },
+  });
 
   // Get records for a specific date grouped by type
   const getRecordsByDate = useCallback((date: Date): Map<GlucometryType, Glucometry> => {
@@ -126,25 +244,13 @@ export function useGlucoseLog(initialRecords: Glucometry[] = []): UseGlucoseLogR
 
   // Add a new record
   const addRecord = useCallback((type: GlucometryType, value: number, notes?: string) => {
-    const newRecord: Glucometry = {
-      id: `glucose-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      value,
-      type,
-      timestamp: new Date().toISOString(),
-      notes,
-    };
-
-    setRecords(prev => [...prev, newRecord]);
-  }, []);
+    addMutation.mutate({ type, value, notes });
+  }, [addMutation]);
 
   // Update an existing record
   const updateRecord = useCallback((id: string, value: number, notes?: string) => {
-    setRecords(prev => prev.map(record => 
-      record.id === id 
-        ? { ...record, value, notes, timestamp: new Date().toISOString() }
-        : record
-    ));
-  }, []);
+    updateMutation.mutate({ id, value, notes });
+  }, [updateMutation]);
 
   return {
     records,
@@ -154,5 +260,6 @@ export function useGlucoseLog(initialRecords: Glucometry[] = []): UseGlucoseLogR
     getRecordsByDate,
     getRecordsInRange,
     getSlotRecord,
+    isLoading,
   };
 }
