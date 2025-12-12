@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_call_schedules: {
+        Row: {
+          call_purposes: string[]
+          call_time: string
+          created_at: string | null
+          custom_message: string | null
+          days_of_week: number[]
+          id: string
+          is_active: boolean
+          patient_id: string
+          scheduled_by_role: string
+          scheduled_by_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          call_purposes: string[]
+          call_time: string
+          created_at?: string | null
+          custom_message?: string | null
+          days_of_week: number[]
+          id?: string
+          is_active?: boolean
+          patient_id: string
+          scheduled_by_role: string
+          scheduled_by_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          call_purposes?: string[]
+          call_time?: string
+          created_at?: string | null
+          custom_message?: string | null
+          days_of_week?: number[]
+          id?: string
+          is_active?: boolean
+          patient_id?: string
+          scheduled_by_role?: string
+          scheduled_by_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_call_schedules_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coadmin_profiles: {
         Row: {
           created_at: string | null

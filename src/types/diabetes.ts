@@ -280,3 +280,37 @@ export interface DailyXPLog {
   streakDays: number;
   streakMultiplier: number;
 }
+
+// AI Call Schedule types
+export type AICallPurpose = 'glucose' | 'wellness' | 'insulin' | 'reminder';
+
+export const AI_CALL_PURPOSE_LABELS: Record<AICallPurpose, string> = {
+  glucose: 'Registro de glucosa',
+  wellness: 'Bienestar (sueño, estrés)',
+  insulin: 'Recordatorio de insulina',
+  reminder: 'Recordatorio general',
+};
+
+export const DAYS_OF_WEEK_LABELS: Record<number, string> = {
+  1: 'Lun',
+  2: 'Mar',
+  3: 'Mié',
+  4: 'Jue',
+  5: 'Vie',
+  6: 'Sáb',
+  7: 'Dom',
+};
+
+export interface AICallSchedule {
+  id: string;
+  patientId: string;
+  scheduledByUserId: string;
+  scheduledByRole: 'patient' | 'coadmin';
+  callTime: string; // HH:MM format
+  daysOfWeek: number[]; // 1-7 where 1=Monday
+  callPurposes: AICallPurpose[];
+  customMessage?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
