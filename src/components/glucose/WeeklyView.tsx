@@ -103,6 +103,13 @@ export function WeeklyView({ records, selectedDate, onDateChange }: WeeklyViewPr
         </Button>
       </div>
 
+      {/* Trend Chart - Positioned prominently after navigation */}
+      {records.length > 0 && (
+        <div className="glass-card p-4">
+          <GlucoseChart data={records} showTargetRange className="w-full" />
+        </div>
+      )}
+
       {/* Week Days Mini Calendar */}
       <div className="glass-card p-4">
         <h3 className="text-hig-sm font-medium text-muted-foreground mb-3">Resumen por día</h3>
@@ -153,13 +160,6 @@ export function WeeklyView({ records, selectedDate, onDateChange }: WeeklyViewPr
           <p className="text-hig-sm text-muted-foreground mt-1">
             No hay mediciones en este período
           </p>
-        </div>
-      )}
-
-      {/* Trend Chart */}
-      {records.length > 0 && (
-        <div className="glass-card p-4">
-          <GlucoseChart data={records} showTargetRange className="w-full" />
         </div>
       )}
     </div>

@@ -157,6 +157,13 @@ export function MonthlyView({ records, selectedDate, onDateChange }: MonthlyView
         </Button>
       </div>
 
+      {/* Trend Chart - Positioned prominently after navigation */}
+      {records.length > 0 && (
+        <div className="glass-card p-4">
+          <GlucoseChart data={records} showTargetRange className="w-full" />
+        </div>
+      )}
+
       {/* Calendar View */}
       <div className="glass-card p-4">
         <h3 className="text-hig-sm font-medium text-muted-foreground mb-3">Calendario de registros</h3>
@@ -257,13 +264,6 @@ export function MonthlyView({ records, selectedDate, onDateChange }: MonthlyView
           <p className="text-hig-sm text-muted-foreground mt-1">
             No hay mediciones en este período
           </p>
-        </div>
-      )}
-
-      {/* Trend Chart */}
-      {records.length > 0 && (
-        <div className="glass-card p-4">
-          <GlucoseChart data={records} showTargetRange className="w-full" />
         </div>
       )}
     </div>
