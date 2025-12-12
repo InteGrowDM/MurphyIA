@@ -18,32 +18,23 @@ import {
   Glucometry, 
   GlucometryType, 
   MEAL_TIME_SLOTS, 
-  Patient,
   UserRole,
   ViewMode 
 } from '@/types/diabetes';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Share2, TrendingUp, Activity } from 'lucide-react';
-import mockData from '@/data/mockPatients.json';
+import { CalendarIcon, Share2, TrendingUp, Activity, Loader2 } from 'lucide-react';
 
 export default function Glucometrias() {
   const location = useLocation();
-  const { userRole: authRole, profile, isDemoMode, demoRole } = useAuth();
+  const { userRole: authRole, profile, patientProfile, isDemoMode, demoRole } = useAuth();
   
   // Use auth role if available, fallback to location state for demo mode compatibility
   const userRole: UserRole = authRole || demoRole || (location.state?.role as UserRole) || 'patient';
   
-  const patients = mockData.patients as Patient[];
-  const currentPatient = patients[0];
-  
-  // Get user name from auth profile or mock data
-  const userName = profile?.full_name || (
-    userRole === 'coadmin' 
-      ? mockData.coadmins[0].name 
-      : currentPatient.name
-  );
+  // Get user name from auth profile
+  const userName = profile?.full_name || 'Usuario';
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
@@ -56,14 +47,15 @@ export default function Glucometrias() {
   const [hasSleepLogged] = useState(false);
   const [hasStressLogged] = useState(false);
 
-  // Initialize hook with existing patient data
+  // Initialize hook with patient ID from auth
   const { 
     records, 
     addRecord, 
     updateRecord, 
     getRecordsByDate,
-    getRecordsInRange 
-  } = useGlucoseLog(currentPatient.glucometrias);
+    getRecordsInRange,
+    isLoading,
+  } = useGlucoseLog(patientProfile?.id);
 
   // Calculate date range based on view mode
   const { startDate, endDate } = useMemo(() => {
@@ -115,8 +107,8 @@ export default function Glucometrias() {
     todayGlucoseRecords: todayRecords,
     hasSleepLogged,
     hasStressLogged,
-    streakDays: currentPatient.streak,
-    totalAccumulatedXP: currentPatient.xpLevel * 10,
+    streakDays: patientProfile?.streak || 0,
+    totalAccumulatedXP: patientProfile?.xp_level || 0,
   });
 
   const isToday = isSameDay(selectedDate, new Date());
@@ -149,6 +141,20 @@ export default function Glucometrias() {
       inRange: values.filter(v => v >= 70 && v <= 180).length,
     };
   }, [dayRecords]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout userRole={userRole} userName={userName}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Cargando registros...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userRole={userRole} userName={userName}>
