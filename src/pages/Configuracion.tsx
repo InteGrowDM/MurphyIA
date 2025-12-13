@@ -103,7 +103,7 @@ export default function Configuracion() {
               <button
                 key={item.key}
                 onClick={() => handleOpenSheet(item.key)}
-                className="glass-card p-4 flex items-center gap-4 text-left hover:bg-secondary/30 transition-colors group"
+                className="glass-card p-4 flex items-center gap-4 text-left hover:bg-secondary/30 transition-colors group min-h-[56px]"
                 aria-label={`Abrir ${item.label}`}
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">

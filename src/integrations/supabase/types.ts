@@ -252,6 +252,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          daily_summary: boolean | null
+          glucose_alerts: boolean | null
+          hyperglycemia_alerts: boolean | null
+          hypoglycemia_alerts: boolean | null
+          id: string
+          measurement_reminders: boolean | null
+          medication_reminders: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          daily_summary?: boolean | null
+          glucose_alerts?: boolean | null
+          hyperglycemia_alerts?: boolean | null
+          hypoglycemia_alerts?: boolean | null
+          id?: string
+          measurement_reminders?: boolean | null
+          medication_reminders?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          daily_summary?: boolean | null
+          glucose_alerts?: boolean | null
+          hyperglycemia_alerts?: boolean | null
+          hypoglycemia_alerts?: boolean | null
+          id?: string
+          measurement_reminders?: boolean | null
+          medication_reminders?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       patient_profiles: {
         Row: {
           birth_date: string | null

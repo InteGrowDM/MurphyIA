@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -38,6 +38,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DiabetesType } from '@/types/diabetes';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -58,30 +60,72 @@ const DIABETES_TYPES: DiabetesType[] = ['Tipo 1', 'Tipo 2', 'Gestacional', 'LADA
 
 export function PersonalDataSheet({ open, onOpenChange }: PersonalDataSheetProps) {
   const { toast } = useToast();
+  const { user, profile, patientProfile, isDemoMode, refreshProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: 'Carlos García',
-      email: 'carlos.garcia@email.com',
-      phone: '+52 555 123 4567',
-      birthDate: new Date('1985-06-15'),
-      diabetesType: 'Tipo 2',
+      name: '',
+      email: '',
+      phone: '',
+      birthDate: undefined,
+      diabetesType: 'Tipo 1',
     },
   });
 
+  // Populate form with real data when available
+  useEffect(() => {
+    if (profile && patientProfile && user) {
+      form.reset({
+        name: profile.full_name || '',
+        email: user.email || '',
+        phone: profile.phone || '',
+        birthDate: patientProfile.birth_date ? new Date(patientProfile.birth_date) : undefined,
+        diabetesType: patientProfile.diabetes_type as DiabetesType,
+      });
+    }
+  }, [profile, patientProfile, user, form]);
+
   const onSubmit = async (data: FormValues) => {
+    if (isDemoMode) {
+      toast({ title: 'Modo demo', description: 'Los cambios no se guardan en modo demo' });
+      onOpenChange(false);
+      return;
+    }
+
+    if (!user?.id) return;
+
     setIsSubmitting(true);
-    // Simular guardado
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setIsSubmitting(false);
-    
-    toast({
-      title: 'Datos actualizados',
-      description: 'Tus datos personales se han guardado correctamente.',
-    });
-    onOpenChange(false);
+    try {
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: data.name, phone: data.phone || null })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Update patient_profiles table
+      const { error: patientError } = await supabase
+        .from('patient_profiles')
+        .update({
+          birth_date: format(data.birthDate, 'yyyy-MM-dd'),
+          diabetes_type: data.diabetesType,
+        })
+        .eq('user_id', user.id);
+
+      if (patientError) throw patientError;
+
+      await refreshProfile();
+      toast({ title: 'Datos actualizados', description: 'Tus datos personales se han guardado correctamente.' });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({ title: 'Error', description: 'No se pudieron guardar los cambios', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,8 +161,9 @@ export function PersonalDataSheet({ open, onOpenChange }: PersonalDataSheetProps
                 <FormItem>
                   <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="tu@email.com" {...field} />
+                    <Input type="email" placeholder="tu@email.com" {...field} disabled className="bg-muted" />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground">El email no puede modificarse</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -187,7 +232,7 @@ export function PersonalDataSheet({ open, onOpenChange }: PersonalDataSheetProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de diabetes</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona el tipo" />
