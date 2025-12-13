@@ -5,6 +5,7 @@ import { PatientCard } from '@/components/dashboard/PatientCard';
 import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
+import { WellnessHistorySheet } from '@/components/wellness/WellnessHistorySheet';
 
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
   const [stressDialogOpen, setStressDialogOpen] = useState(false);
   const [dizzinessDialogOpen, setDizzinessDialogOpen] = useState(false);
+  const [historyType, setHistoryType] = useState<'sleep' | 'stress' | 'dizziness' | null>(null);
 
   // Wellness data from Supabase
   const { 
@@ -36,7 +38,10 @@ export default function Dashboard() {
     todayDizziness, 
     saveSleep, 
     saveStress, 
-    saveDizziness 
+    saveDizziness,
+    sleepHistory,
+    stressHistory,
+    dizzinessHistory
   } = useWellnessLog(patientProfile?.id);
 
   // Real glucose data from Supabase (only when authenticated)
@@ -171,6 +176,7 @@ export default function Dashboard() {
           onSleepClick={() => setSleepDialogOpen(true)}
           onStressClick={() => setStressDialogOpen(true)}
           onDizzinessClick={() => setDizzinessDialogOpen(true)}
+          onViewHistory={(type) => setHistoryType(type)}
         />
       </section>
 
@@ -225,6 +231,18 @@ export default function Dashboard() {
         type="dizziness"
         initialSeverity={todayDizziness?.severity}
         onSave={handleSaveDizziness}
+      />
+
+      {/* Wellness History Sheet */}
+      <WellnessHistorySheet
+        open={historyType !== null}
+        onOpenChange={(open) => !open && setHistoryType(null)}
+        type={historyType ?? 'sleep'}
+        data={
+          historyType === 'sleep' ? sleepHistory :
+          historyType === 'stress' ? stressHistory :
+          dizzinessHistory
+        }
       />
     </DashboardLayout>
   );

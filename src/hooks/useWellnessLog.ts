@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subDays } from 'date-fns';
 import { DizzinessSymptom } from '@/types/diabetes';
 
 interface SleepData {
@@ -95,6 +95,54 @@ export function useWellnessLog(patientId?: string) {
     enabled: !!patientId,
   });
 
+  // 30-day history queries
+  const thirtyDaysAgo = subDays(today, 30).toISOString().split('T')[0];
+
+  const { data: sleepHistory = [] } = useQuery({
+    queryKey: ['sleep-history', patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      const { data } = await supabase
+        .from('sleep_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .gte('date', thirtyDaysAgo)
+        .order('date', { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!patientId,
+  });
+
+  const { data: stressHistory = [] } = useQuery({
+    queryKey: ['stress-history', patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      const { data } = await supabase
+        .from('stress_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .gte('recorded_at', subDays(today, 30).toISOString())
+        .order('recorded_at', { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!patientId,
+  });
+
+  const { data: dizzinessHistory = [] } = useQuery({
+    queryKey: ['dizziness-history', patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      const { data } = await supabase
+        .from('dizziness_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .gte('recorded_at', subDays(today, 30).toISOString())
+        .order('recorded_at', { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!patientId,
+  });
+
   // Save sleep mutation
   const saveSleepMutation = useMutation({
     mutationFn: async (sleepData: SleepData) => {
@@ -175,5 +223,8 @@ export function useWellnessLog(patientId?: string) {
     saveStress: saveStressMutation.mutate,
     saveDizziness: saveDizzinessMutation.mutate,
     isLoading: sleepLoading || stressLoading || dizzinessLoading,
+    sleepHistory,
+    stressHistory,
+    dizzinessHistory,
   };
 }

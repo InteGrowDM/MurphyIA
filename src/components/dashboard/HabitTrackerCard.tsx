@@ -4,6 +4,7 @@ import {
   Sparkles,
   Calendar,
   ChevronRight,
+  History,
   type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ interface HabitTrackerCardProps {
   onSleepClick: () => void;
   onStressClick: () => void;
   onDizzinessClick: () => void;
+  onViewHistory?: (type: 'sleep' | 'stress' | 'dizziness') => void;
 }
 
 const STRESS_LABELS = ['Muy relajado', 'Relajado', 'Normal', 'Algo tenso', 'Tenso', 'Estresado', 'Muy estresado', 'Agotado', 'Crítico', 'Emergencia'];
@@ -37,7 +39,8 @@ export function HabitTrackerCard({
   dizzinessData,
   onSleepClick,
   onStressClick,
-  onDizzinessClick
+  onDizzinessClick,
+  onViewHistory
 }: HabitTrackerCardProps) {
   
   // Build wellness items with current data
@@ -176,8 +179,20 @@ export function HabitTrackerCard({
                 </p>
               </div>
 
-              {/* Arrow indicator - only on mobile */}
-              <ChevronRight className="w-5 h-5 text-muted-foreground/50 md:hidden" aria-hidden="true" />
+              {/* Actions */}
+              <div className="flex items-center gap-1">
+                {onViewHistory && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onViewHistory(item.id as 'sleep' | 'stress' | 'dizziness'); }}
+                    className="p-2 rounded-hig hover:bg-secondary/60 focus-ring"
+                    aria-label={`Ver historial de ${item.label}`}
+                  >
+                    <History className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  </button>
+                )}
+                <ChevronRight className="w-5 h-5 text-muted-foreground/50 md:hidden" aria-hidden="true" />
+              </div>
             </button>
           );
         })}
