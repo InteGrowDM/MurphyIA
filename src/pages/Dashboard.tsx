@@ -8,6 +8,7 @@ import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
+import { useWellnessLog } from '@/hooks/useWellnessLog';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
@@ -17,7 +18,7 @@ import { isSameDay } from 'date-fns';
 
 export default function Dashboard() {
   const location = useLocation();
-  const { userRole: authRole, profile, isDemoMode, demoRole } = useAuth();
+  const { userRole: authRole, profile, isDemoMode, demoRole, patientProfile } = useAuth();
   
   // Use auth role if available, fallback to location state for demo mode compatibility
   const userRole: UserRole = authRole || demoRole || (location.state?.role as UserRole) || 'patient';
@@ -27,10 +28,15 @@ export default function Dashboard() {
   const [stressDialogOpen, setStressDialogOpen] = useState(false);
   const [dizzinessDialogOpen, setDizzinessDialogOpen] = useState(false);
 
-  // Local state for wellness data
-  const [sleepData, setSleepData] = useState<{ hours: number; quality: number } | null>(null);
-  const [stressData, setStressData] = useState<{ level: number } | null>(null);
-  const [dizzinessData, setDizzinessData] = useState<{ severity: number; count: number } | null>(null);
+  // Wellness data from Supabase
+  const { 
+    todaySleep, 
+    todayStress, 
+    todayDizziness, 
+    saveSleep, 
+    saveStress, 
+    saveDizziness 
+  } = useWellnessLog(patientProfile?.id);
 
   // Get mock data for demo mode
   const patients = mockData.patients as Patient[];
@@ -56,8 +62,8 @@ export default function Dashboard() {
   // Calculate XP using the hook
   const xpResult = useXPCalculation({
     todayGlucoseRecords,
-    hasSleepLogged: !!sleepData,
-    hasStressLogged: !!stressData,
+    hasSleepLogged: !!todaySleep,
+    hasStressLogged: !!todayStress,
     streakDays: currentPatient.streak,
     totalAccumulatedXP: currentPatient.xpLevel * 10,
   });
@@ -96,18 +102,15 @@ export default function Dashboard() {
 
   // Wellness save handlers
   const handleSaveSleep = (hours: number, quality?: number) => {
-    setSleepData({ hours, quality: quality ?? 5 });
+    saveSleep({ hours, quality: quality ?? 5 });
   };
 
   const handleSaveStress = (level: number, notes?: string) => {
-    setStressData({ level });
+    saveStress({ level, notes });
   };
 
   const handleSaveDizziness = (severity: number, symptoms?: DizzinessSymptom[], notes?: string) => {
-    setDizzinessData(prev => ({
-      severity,
-      count: (prev?.count ?? 0) + 1
-    }));
+    saveDizziness({ severity, symptoms, notes });
   };
 
   return (
@@ -154,9 +157,9 @@ export default function Dashboard() {
       {/* Bienestar Diario - Full width, above the main grid */}
       <section className="mb-6">
         <HabitTrackerCard 
-          sleepData={sleepData}
-          stressData={stressData}
-          dizzinessData={dizzinessData}
+          sleepData={todaySleep}
+          stressData={todayStress}
+          dizzinessData={todayDizziness}
           onSleepClick={() => setSleepDialogOpen(true)}
           onStressClick={() => setStressDialogOpen(true)}
           onDizzinessClick={() => setDizzinessDialogOpen(true)}
@@ -195,8 +198,8 @@ export default function Dashboard() {
         open={sleepDialogOpen}
         onOpenChange={setSleepDialogOpen}
         type="sleep"
-        initialHours={sleepData?.hours}
-        initialQuality={sleepData?.quality}
+        initialHours={todaySleep?.hours}
+        initialQuality={todaySleep?.quality}
         onSave={handleSaveSleep}
       />
 
@@ -204,7 +207,7 @@ export default function Dashboard() {
         open={stressDialogOpen}
         onOpenChange={setStressDialogOpen}
         type="stress"
-        initialLevel={stressData?.level}
+        initialLevel={todayStress?.level}
         onSave={handleSaveStress}
       />
 
@@ -212,7 +215,7 @@ export default function Dashboard() {
         open={dizzinessDialogOpen}
         onOpenChange={setDizzinessDialogOpen}
         type="dizziness"
-        initialSeverity={dizzinessData?.severity}
+        initialSeverity={todayDizziness?.severity}
         onSave={handleSaveDizziness}
       />
     </DashboardLayout>
