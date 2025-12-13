@@ -301,13 +301,17 @@ export const DAYS_OF_WEEK_LABELS: Record<number, string> = {
   7: 'Dom',
 };
 
+export type ScheduleType = 'recurring' | 'specific';
+
 export interface AICallSchedule {
   id: string;
   patientId: string;
   scheduledByUserId: string;
   scheduledByRole: 'patient' | 'coadmin';
+  scheduleType: ScheduleType;
   callTime: string; // HH:MM format
-  daysOfWeek: number[]; // 1-7 where 1=Monday
+  daysOfWeek: number[]; // 1-7 where 1=Monday (for recurring)
+  specificDates?: string[]; // YYYY-MM-DD (for specific)
   callPurposes: AICallPurpose[];
   customMessage?: string;
   isActive: boolean;

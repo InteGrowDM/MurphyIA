@@ -8,8 +8,10 @@ interface AICallScheduleDB {
   patient_id: string;
   scheduled_by_user_id: string;
   scheduled_by_role: string;
+  schedule_type: string;
   call_time: string;
-  days_of_week: number[];
+  days_of_week: number[] | null;
+  specific_dates: string[] | null;
   call_purposes: string[];
   custom_message: string | null;
   is_active: boolean;
@@ -22,8 +24,10 @@ const mapDBToSchedule = (db: AICallScheduleDB): AICallSchedule => ({
   patientId: db.patient_id,
   scheduledByUserId: db.scheduled_by_user_id,
   scheduledByRole: db.scheduled_by_role as 'patient' | 'coadmin',
+  scheduleType: (db.schedule_type || 'recurring') as 'recurring' | 'specific',
   callTime: db.call_time,
-  daysOfWeek: db.days_of_week,
+  daysOfWeek: db.days_of_week || [],
+  specificDates: db.specific_dates || undefined,
   callPurposes: db.call_purposes as AICallPurpose[],
   customMessage: db.custom_message || undefined,
   isActive: db.is_active,
@@ -35,8 +39,10 @@ export interface CreateScheduleData {
   patientId: string;
   scheduledByUserId: string;
   scheduledByRole: 'patient' | 'coadmin';
+  scheduleType: 'recurring' | 'specific';
   callTime: string;
-  daysOfWeek: number[];
+  daysOfWeek?: number[];
+  specificDates?: string[];
   callPurposes: AICallPurpose[];
   customMessage?: string;
 }
@@ -68,8 +74,10 @@ export function useAICallSchedule(patientId?: string) {
         patient_id: data.patientId,
         scheduled_by_user_id: data.scheduledByUserId,
         scheduled_by_role: data.scheduledByRole,
+        schedule_type: data.scheduleType,
         call_time: data.callTime,
-        days_of_week: data.daysOfWeek,
+        days_of_week: data.scheduleType === 'recurring' ? data.daysOfWeek : null,
+        specific_dates: data.scheduleType === 'specific' ? data.specificDates : null,
         call_purposes: data.callPurposes,
         custom_message: data.customMessage || null,
       });
@@ -88,7 +96,11 @@ export function useAICallSchedule(patientId?: string) {
     mutationFn: async ({ id, ...data }: Partial<CreateScheduleData> & { id: string }) => {
       const updateData: Record<string, unknown> = {};
       if (data.callTime) updateData.call_time = data.callTime;
-      if (data.daysOfWeek) updateData.days_of_week = data.daysOfWeek;
+      if (data.scheduleType) {
+        updateData.schedule_type = data.scheduleType;
+        updateData.days_of_week = data.scheduleType === 'recurring' ? data.daysOfWeek : null;
+        updateData.specific_dates = data.scheduleType === 'specific' ? data.specificDates : null;
+      }
       if (data.callPurposes) updateData.call_purposes = data.callPurposes;
       if (data.customMessage !== undefined) updateData.custom_message = data.customMessage || null;
 
