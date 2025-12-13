@@ -172,7 +172,7 @@ export function HabitTrackerCard({
                   "text-hig-xs mt-0.5",
                   item.status === 'recorded' ? "text-muted-foreground" : "text-muted-foreground/60"
                 )}>
-                  {item.value || 'Toca para registrar'}
+                  {item.value || <><span className="action-text-adaptive" /> para registrar</>}
                 </p>
               </div>
 

@@ -53,7 +53,7 @@ export function GlucoseSlotCard({ type, record, onClick, iconName }: GlucoseSlot
           : "bg-muted/20 border-border/30 hover:bg-muted/40"
       )}
       aria-label={hasRecord 
-        ? `${label}: ${record.value} mg/dL registrado` 
+        ? `${label}: ${record.value} mg/dL, ${status === 'normal' ? 'normal' : status === 'high' || status === 'critical_high' ? 'alto' : 'bajo'}` 
         : `Registrar ${label}`
       }
     >
@@ -85,7 +85,7 @@ export function GlucoseSlotCard({ type, record, onClick, iconName }: GlucoseSlot
           </p>
         ) : (
           <p className="text-hig-xs text-muted-foreground/70">
-            Toca para registrar
+            <span className="action-text-adaptive" /> para registrar
           </p>
         )}
       </div>
