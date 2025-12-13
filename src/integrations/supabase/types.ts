@@ -96,6 +96,47 @@ export type Database = {
           },
         ]
       }
+      dizziness_records: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          recorded_at: string
+          severity: number
+          symptoms: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          recorded_at?: string
+          severity: number
+          symptoms?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          recorded_at?: string
+          severity?: number
+          symptoms?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dizziness_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       glucose_records: {
         Row: {
           created_at: string | null
@@ -285,6 +326,76 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      sleep_records: {
+        Row: {
+          created_at: string | null
+          date: string
+          hours: number
+          id: string
+          patient_id: string
+          quality: number
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          hours: number
+          id?: string
+          patient_id: string
+          quality: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          hours?: number
+          id?: string
+          patient_id?: string
+          quality?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sleep_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stress_records: {
+        Row: {
+          created_at: string | null
+          id: string
+          level: number
+          notes: string | null
+          patient_id: string
+          recorded_at: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level: number
+          notes?: string | null
+          patient_id: string
+          recorded_at?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level?: number
+          notes?: string | null
+          patient_id?: string
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stress_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
