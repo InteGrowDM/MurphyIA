@@ -20,12 +20,14 @@ export type Database = {
           call_time: string
           created_at: string | null
           custom_message: string | null
-          days_of_week: number[]
+          days_of_week: number[] | null
           id: string
           is_active: boolean
           patient_id: string
+          schedule_type: string
           scheduled_by_role: string
           scheduled_by_user_id: string
+          specific_dates: string[] | null
           updated_at: string | null
         }
         Insert: {
@@ -33,12 +35,14 @@ export type Database = {
           call_time: string
           created_at?: string | null
           custom_message?: string | null
-          days_of_week: number[]
+          days_of_week?: number[] | null
           id?: string
           is_active?: boolean
           patient_id: string
+          schedule_type?: string
           scheduled_by_role: string
           scheduled_by_user_id: string
+          specific_dates?: string[] | null
           updated_at?: string | null
         }
         Update: {
@@ -46,12 +50,14 @@ export type Database = {
           call_time?: string
           created_at?: string | null
           custom_message?: string | null
-          days_of_week?: number[]
+          days_of_week?: number[] | null
           id?: string
           is_active?: boolean
           patient_id?: string
+          schedule_type?: string
           scheduled_by_role?: string
           scheduled_by_user_id?: string
+          specific_dates?: string[] | null
           updated_at?: string | null
         }
         Relationships: [

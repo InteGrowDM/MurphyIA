@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Phone, Plus, Pencil, Trash2, Bot } from 'lucide-react';
+import { Phone, Plus, Pencil, Trash2, Bot, CalendarDays } from 'lucide-react';
+import { format, startOfToday } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -7,8 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
 import { useAICallSchedule, CreateScheduleData } from '@/hooks/useAICallSchedule';
-import { AICallSchedule, AICallPurpose, AI_CALL_PURPOSE_LABELS, DAYS_OF_WEEK_LABELS } from '@/types/diabetes';
+import { AICallSchedule, AICallPurpose, AI_CALL_PURPOSE_LABELS, DAYS_OF_WEEK_LABELS, ScheduleType } from '@/types/diabetes';
+import { cn } from '@/lib/utils';
 
 interface AICallScheduleManagerProps {
   patientId: string;
@@ -25,14 +30,18 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
   const [editingSchedule, setEditingSchedule] = useState<AICallSchedule | null>(null);
 
   // Form state
+  const [scheduleType, setScheduleType] = useState<ScheduleType>('recurring');
   const [callTime, setCallTime] = useState('08:00');
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [selectedPurposes, setSelectedPurposes] = useState<AICallPurpose[]>(['glucose']);
   const [customMessage, setCustomMessage] = useState('');
 
   const resetForm = () => {
+    setScheduleType('recurring');
     setCallTime('08:00');
     setSelectedDays([1, 2, 3, 4, 5]);
+    setSelectedDates([]);
     setSelectedPurposes(['glucose']);
     setCustomMessage('');
     setEditingSchedule(null);
@@ -45,8 +54,10 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
 
   const openEditSchedule = (schedule: AICallSchedule) => {
     setEditingSchedule(schedule);
-    setCallTime(schedule.callTime.slice(0, 5)); // HH:MM
-    setSelectedDays(schedule.daysOfWeek);
+    setScheduleType(schedule.scheduleType);
+    setCallTime(schedule.callTime.slice(0, 5));
+    setSelectedDays(schedule.daysOfWeek || []);
+    setSelectedDates(schedule.specificDates?.map(d => new Date(d)) || []);
     setSelectedPurposes(schedule.callPurposes);
     setCustomMessage(schedule.customMessage || '');
     setIsOpen(true);
@@ -65,25 +76,32 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
   };
 
   const handleSubmit = async () => {
-    if (selectedDays.length === 0 || selectedPurposes.length === 0) return;
+    const hasValidSelection = scheduleType === 'recurring' 
+      ? selectedDays.length > 0 
+      : selectedDates.length > 0;
+    
+    if (!hasValidSelection || selectedPurposes.length === 0) return;
+
+    const baseData = {
+      callTime,
+      callPurposes: selectedPurposes,
+      customMessage,
+      scheduleType,
+      daysOfWeek: scheduleType === 'recurring' ? selectedDays : undefined,
+      specificDates: scheduleType === 'specific' ? selectedDates.map(d => format(d, 'yyyy-MM-dd')) : undefined,
+    };
 
     if (editingSchedule) {
       await updateSchedule.mutateAsync({
         id: editingSchedule.id,
-        callTime,
-        daysOfWeek: selectedDays,
-        callPurposes: selectedPurposes,
-        customMessage,
+        ...baseData,
       });
     } else {
       const data: CreateScheduleData = {
         patientId,
         scheduledByUserId: userId,
         scheduledByRole: userRole,
-        callTime,
-        daysOfWeek: selectedDays,
-        callPurposes: selectedPurposes,
-        customMessage,
+        ...baseData,
       };
       await createSchedule.mutateAsync(data);
     }
@@ -91,7 +109,19 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
     resetForm();
   };
 
-  const formatDays = (days: number[]) => {
+  const formatScheduleInfo = (schedule: AICallSchedule) => {
+    if (schedule.scheduleType === 'specific' && schedule.specificDates) {
+      const dates = schedule.specificDates
+        .map(d => new Date(d))
+        .filter(d => d >= startOfToday())
+        .map(d => format(d, "d MMM", { locale: es }));
+      
+      if (dates.length === 0) return 'Sin fechas pendientes';
+      if (dates.length <= 3) return dates.join(', ');
+      return `${dates.slice(0, 2).join(', ')} +${dates.length - 2} más`;
+    }
+    
+    const days = schedule.daysOfWeek || [];
     if (days.length === 7) return 'Todos los días';
     if (days.length === 5 && days.every(d => d <= 5)) return 'Lun-Vie';
     if (days.length === 2 && days.includes(6) && days.includes(7)) return 'Fin de semana';
@@ -105,6 +135,10 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
     const h12 = h % 12 || 12;
     return `${h12}:${minutes} ${ampm}`;
   };
+
+  const isFormValid = scheduleType === 'recurring' 
+    ? selectedDays.length > 0 && selectedPurposes.length > 0
+    : selectedDates.length > 0 && selectedPurposes.length > 0;
 
   return (
     <div className="glass-card p-4 space-y-4">
@@ -134,10 +168,14 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
               }`}
             >
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-muted-foreground" />
+                {schedule.scheduleType === 'specific' ? (
+                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                )}
                 <div>
                   <div className="text-sm font-medium text-foreground">
-                    {formatDays(schedule.daysOfWeek)} · {formatTime(schedule.callTime)}
+                    {formatScheduleInfo(schedule)} · {formatTime(schedule.callTime)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {schedule.callPurposes.map(p => AI_CALL_PURPOSE_LABELS[p]).join(', ')}
@@ -201,26 +239,83 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
               />
             </div>
 
-            {/* Days of week */}
+            {/* Schedule Type - Segmented Control (Apple HIG) */}
             <div className="space-y-2">
-              <Label>Días de la semana</Label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_DAYS.map(day => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => handleDayToggle(day)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      selectedDays.includes(day)
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    {DAYS_OF_WEEK_LABELS[day]}
-                  </button>
-                ))}
+              <Label>Tipo de programación</Label>
+              <div className="flex rounded-lg bg-muted p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setScheduleType('recurring')}
+                  className={cn(
+                    "flex-1 min-h-[44px] px-4 py-2 rounded-md text-sm font-medium transition-all",
+                    scheduleType === 'recurring'
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Semanal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScheduleType('specific')}
+                  className={cn(
+                    "flex-1 min-h-[44px] px-4 py-2 rounded-md text-sm font-medium transition-all",
+                    scheduleType === 'specific'
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Fechas específicas
+                </button>
               </div>
             </div>
+
+            {/* Days of week OR Calendar based on scheduleType */}
+            {scheduleType === 'recurring' ? (
+              <div className="space-y-2">
+                <Label>Días de la semana</Label>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_DAYS.map(day => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDayToggle(day)}
+                      className={cn(
+                        "min-h-[44px] min-w-[44px] px-3 rounded-lg text-sm font-medium transition-colors",
+                        selectedDays.includes(day)
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {DAYS_OF_WEEK_LABELS[day]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Label>Selecciona las fechas</Label>
+                <Calendar
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={(dates) => setSelectedDates(dates || [])}
+                  disabled={(date) => date < startOfToday()}
+                  className="pointer-events-auto rounded-lg border"
+                  locale={es}
+                />
+                {selectedDates.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDates
+                      .sort((a, b) => a.getTime() - b.getTime())
+                      .map(date => (
+                        <Badge key={date.toISOString()} variant="secondary">
+                          {format(date, "d MMM", { locale: es })}
+                        </Badge>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Purposes */}
             <div className="space-y-3">
@@ -259,7 +354,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
               <Button 
                 onClick={handleSubmit} 
                 className="flex-1"
-                disabled={selectedDays.length === 0 || selectedPurposes.length === 0 || createSchedule.isPending || updateSchedule.isPending}
+                disabled={!isFormValid || createSchedule.isPending || updateSchedule.isPending}
               >
                 {editingSchedule ? 'Guardar Cambios' : 'Programar'}
               </Button>
