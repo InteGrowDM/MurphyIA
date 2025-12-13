@@ -256,6 +256,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDemoRole(null);
   };
 
+  const refreshProfile = async () => {
+    if (user?.id) await fetchUserData(user.id);
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -273,6 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     enterDemoMode,
     exitDemoMode,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

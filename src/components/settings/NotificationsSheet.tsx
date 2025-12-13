@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, AlertTriangle, Clock, FileText } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationsSheetProps {
   open: boolean;
@@ -27,42 +29,42 @@ interface NotificationSetting {
 
 const notificationSettings: NotificationSetting[] = [
   {
-    id: 'hypoglycemiaAlerts',
+    id: 'hypoglycemia_alerts',
     label: 'Alertas de hipoglucemia',
     description: 'Recibe alertas cuando tu glucosa esté por debajo de 70 mg/dL',
     icon: AlertTriangle,
     category: 'alerts',
   },
   {
-    id: 'hyperglycemiaAlerts',
+    id: 'hyperglycemia_alerts',
     label: 'Alertas de hiperglucemia',
     description: 'Recibe alertas cuando tu glucosa supere los 180 mg/dL',
     icon: AlertTriangle,
     category: 'alerts',
   },
   {
-    id: 'glucoseAlerts',
+    id: 'glucose_alerts',
     label: 'Alertas generales de glucosa',
     description: 'Notificaciones sobre tendencias y patrones de glucosa',
     icon: Bell,
     category: 'alerts',
   },
   {
-    id: 'measurementReminders',
+    id: 'measurement_reminders',
     label: 'Recordatorios de medición',
     description: 'Recuerda medir tu glucosa en los horarios establecidos',
     icon: Clock,
     category: 'reminders',
   },
   {
-    id: 'medicationReminders',
+    id: 'medication_reminders',
     label: 'Recordatorios de medicación',
     description: 'Recuerda tomar tu insulina o medicamentos',
     icon: Clock,
     category: 'reminders',
   },
   {
-    id: 'dailySummary',
+    id: 'daily_summary',
     label: 'Resumen diario',
     description: 'Recibe un resumen de tu día cada noche',
     icon: FileText,
@@ -70,25 +72,73 @@ const notificationSettings: NotificationSetting[] = [
   },
 ];
 
+const defaultPreferences: Record<string, boolean> = {
+  hypoglycemia_alerts: true,
+  hyperglycemia_alerts: true,
+  glucose_alerts: true,
+  measurement_reminders: true,
+  medication_reminders: false,
+  daily_summary: true,
+};
+
 export function NotificationsSheet({ open, onOpenChange }: NotificationsSheetProps) {
   const { toast } = useToast();
-  const [preferences, setPreferences] = useState<Record<string, boolean>>({
-    hypoglycemiaAlerts: true,
-    hyperglycemiaAlerts: true,
-    glucoseAlerts: true,
-    measurementReminders: true,
-    medicationReminders: false,
-    dailySummary: true,
-  });
+  const { user, isDemoMode } = useAuth();
+  const [preferences, setPreferences] = useState<Record<string, boolean>>(defaultPreferences);
 
-  const handleToggle = (id: string, checked: boolean) => {
+  // Load preferences from Supabase
+  useEffect(() => {
+    if (!user?.id || isDemoMode) return;
+
+    const loadPreferences = async () => {
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        setPreferences({
+          hypoglycemia_alerts: data.hypoglycemia_alerts ?? true,
+          hyperglycemia_alerts: data.hyperglycemia_alerts ?? true,
+          glucose_alerts: data.glucose_alerts ?? true,
+          measurement_reminders: data.measurement_reminders ?? true,
+          medication_reminders: data.medication_reminders ?? false,
+          daily_summary: data.daily_summary ?? true,
+        });
+      }
+    };
+
+    loadPreferences();
+  }, [user?.id, isDemoMode]);
+
+  const handleToggle = async (id: string, checked: boolean) => {
+    // Optimistic update
     setPreferences(prev => ({ ...prev, [id]: checked }));
-    
+
     const setting = notificationSettings.find(s => s.id === id);
     toast({
       title: checked ? 'Notificación activada' : 'Notificación desactivada',
       description: setting?.label,
     });
+
+    // Demo mode: only local state
+    if (isDemoMode || !user?.id) return;
+
+    // Persist to Supabase
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({
+        user_id: user.id,
+        [id]: checked,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+
+    if (error) {
+      // Revert on error
+      setPreferences(prev => ({ ...prev, [id]: !checked }));
+      toast({ title: 'Error', description: 'No se pudo guardar la preferencia', variant: 'destructive' });
+    }
   };
 
   const alertSettings = notificationSettings.filter(s => s.category === 'alerts');

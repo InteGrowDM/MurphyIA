@@ -92,4 +92,5 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   enterDemoMode: (role: UserRole) => void;
   exitDemoMode: () => void;
+  refreshProfile: () => Promise<void>;
 }

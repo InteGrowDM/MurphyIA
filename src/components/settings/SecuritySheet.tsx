@@ -22,6 +22,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   currentPassword: z.string().min(1, 'Ingresa tu contraseña actual'),
@@ -46,6 +48,7 @@ const mockSessions = [
 
 export function SecuritySheet({ open, onOpenChange }: SecuritySheetProps) {
   const { toast } = useToast();
+  const { user, isDemoMode } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -61,16 +64,43 @@ export function SecuritySheet({ open, onOpenChange }: SecuritySheetProps) {
   });
 
   const onSubmit = async (data: FormValues) => {
+    if (isDemoMode) {
+      toast({ title: 'Modo demo', description: 'Los cambios no se guardan en modo demo' });
+      return;
+    }
+
+    if (!user?.email) return;
+
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setIsSubmitting(false);
-    
-    toast({
-      title: 'Contraseña actualizada',
-      description: 'Tu contraseña se ha cambiado correctamente.',
-    });
-    form.reset();
-    onOpenChange(false);
+    try {
+      // Re-authenticate with current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: data.currentPassword,
+      });
+
+      if (signInError) {
+        toast({ title: 'Error', description: 'Contraseña actual incorrecta', variant: 'destructive' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: data.newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast({ title: 'Contraseña actualizada', description: 'Tu contraseña se ha cambiado correctamente.' });
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast({ title: 'Error', description: 'No se pudo actualizar la contraseña', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCloseAllSessions = () => {
