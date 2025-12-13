@@ -9,6 +9,7 @@ import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
 import { useWellnessLog } from '@/hooks/useWellnessLog';
+import { useGlucoseLog } from '@/hooks/useGlucoseLog';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
@@ -38,6 +39,10 @@ export default function Dashboard() {
     saveDizziness 
   } = useWellnessLog(patientProfile?.id);
 
+  // Real glucose data from Supabase (only when authenticated)
+  const patientId = !isDemoMode && patientProfile?.id ? patientProfile.id : undefined;
+  const { records: realRecords, todayRecords: realTodayRecords } = useGlucoseLog(patientId);
+
   // Get mock data for demo mode
   const patients = mockData.patients as Patient[];
   
@@ -51,13 +56,16 @@ export default function Dashboard() {
       : currentPatient.name
   );
 
-  // Get today's glucose records
+  // Get today's glucose records (real data when authenticated, mock for demo)
   const todayGlucoseRecords = useMemo(() => {
+    if (patientId && realTodayRecords.size > 0) {
+      return Array.from(realTodayRecords.values());
+    }
     const today = new Date();
     return (currentPatient.glucometrias as Glucometry[]).filter(record => 
       isSameDay(new Date(record.timestamp), today)
     );
-  }, [currentPatient.glucometrias]);
+  }, [patientId, realTodayRecords, currentPatient.glucometrias]);
 
   // Calculate XP using the hook
   const xpResult = useXPCalculation({
@@ -170,7 +178,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Left Column - Charts & Data (full on mobile, half on tablet, 2/3 on desktop) */}
         <div className="md:col-span-1 lg:col-span-2 space-y-6">
-          <GlucoseChart data={currentPatient.glucometrias} />
+          <GlucoseChart data={patientId ? realRecords : currentPatient.glucometrias} />
           
           {userRole === 'coadmin' && (
             <PatientCard patient={currentPatient} />

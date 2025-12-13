@@ -87,7 +87,7 @@ export function TopNavbar({ userName, userRole }: TopNavbarProps) {
             to={settingsRoute}
             aria-label="Configuración"
             className={cn(
-              "flex items-center justify-center w-9 h-9 rounded-hig",
+              "flex items-center justify-center w-11 h-11 rounded-hig",
               "transition-colors duration-hig-fast",
               "focus-ring",
               isActive(settingsRoute)

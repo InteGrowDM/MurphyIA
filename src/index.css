@@ -568,6 +568,12 @@
     min-height: var(--touch-target-comfortable);
   }
 
+  /* Adaptive action text (Toca on mobile, Clic on desktop) */
+  .action-text-adaptive::before { content: 'Toca'; }
+  @media (min-width: 768px) {
+    .action-text-adaptive::before { content: 'Clic'; }
+  }
+
   /* Elevation utilities */
   .elevation-0 { box-shadow: var(--elevation-0); }
   .elevation-1 { box-shadow: var(--elevation-1); }
