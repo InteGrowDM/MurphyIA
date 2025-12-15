@@ -23,6 +23,7 @@ export type Database = {
           days_of_week: number[] | null
           id: string
           is_active: boolean
+          notification_channel: string
           patient_id: string
           schedule_type: string
           scheduled_by_role: string
@@ -38,6 +39,7 @@ export type Database = {
           days_of_week?: number[] | null
           id?: string
           is_active?: boolean
+          notification_channel?: string
           patient_id: string
           schedule_type?: string
           scheduled_by_role: string
@@ -53,6 +55,7 @@ export type Database = {
           days_of_week?: number[] | null
           id?: string
           is_active?: boolean
+          notification_channel?: string
           patient_id?: string
           schedule_type?: string
           scheduled_by_role?: string

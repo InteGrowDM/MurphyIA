@@ -303,6 +303,13 @@ export const DAYS_OF_WEEK_LABELS: Record<number, string> = {
 
 export type ScheduleType = 'recurring' | 'specific';
 
+export type NotificationChannel = 'call' | 'whatsapp';
+
+export const NOTIFICATION_CHANNEL_OPTIONS = [
+  { value: 'call' as const, label: 'Llamada' },
+  { value: 'whatsapp' as const, label: 'WhatsApp' },
+] as const;
+
 export interface AICallSchedule {
   id: string;
   patientId: string;
@@ -314,6 +321,7 @@ export interface AICallSchedule {
   specificDates?: string[]; // YYYY-MM-DD (for specific)
   callPurposes: AICallPurpose[];
   customMessage?: string;
+  notificationChannel: NotificationChannel;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, Plus, Pencil, Trash2, Bot, CalendarDays } from 'lucide-react';
+import { Phone, Plus, Pencil, Trash2, Bell, CalendarDays, MessageCircle } from 'lucide-react';
 import { format, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useAICallSchedule, CreateScheduleData } from '@/hooks/useAICallSchedule';
-import { AICallSchedule, AICallPurpose, AI_CALL_PURPOSE_LABELS, DAYS_OF_WEEK_LABELS, ScheduleType } from '@/types/diabetes';
+import { AICallSchedule, AICallPurpose, AI_CALL_PURPOSE_LABELS, DAYS_OF_WEEK_LABELS, ScheduleType, NotificationChannel, NOTIFICATION_CHANNEL_OPTIONS } from '@/types/diabetes';
 import { cn } from '@/lib/utils';
 
 interface AICallScheduleManagerProps {
@@ -36,6 +36,12 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [selectedPurposes, setSelectedPurposes] = useState<AICallPurpose[]>(['glucose']);
   const [customMessage, setCustomMessage] = useState('');
+  const [notificationChannel, setNotificationChannel] = useState<NotificationChannel>('call');
+
+  const segmentedButtonClass = (isActive: boolean) => cn(
+    "flex-1 min-h-[44px] px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2",
+    isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+  );
 
   const resetForm = () => {
     setScheduleType('recurring');
@@ -44,6 +50,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
     setSelectedDates([]);
     setSelectedPurposes(['glucose']);
     setCustomMessage('');
+    setNotificationChannel('call');
     setEditingSchedule(null);
   };
 
@@ -60,6 +67,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
     setSelectedDates(schedule.specificDates?.map(d => new Date(d)) || []);
     setSelectedPurposes(schedule.callPurposes);
     setCustomMessage(schedule.customMessage || '');
+    setNotificationChannel(schedule.notificationChannel || 'call');
     setIsOpen(true);
   };
 
@@ -87,6 +95,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
       callPurposes: selectedPurposes,
       customMessage,
       scheduleType,
+      notificationChannel,
       daysOfWeek: scheduleType === 'recurring' ? selectedDays : undefined,
       specificDates: scheduleType === 'specific' ? selectedDates.map(d => format(d, 'yyyy-MM-dd')) : undefined,
     };
@@ -144,11 +153,11 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
     <div className="glass-card p-4 space-y-4">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-          <Bot className="w-5 h-5 text-primary" />
+          <Bell className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground">Asistente de Voz IA</h3>
-          <p className="text-sm text-muted-foreground">Programa llamadas automáticas para registrar datos</p>
+          <h3 className="font-semibold text-foreground">Alertas Automáticas</h3>
+          <p className="text-sm text-muted-foreground">Programa recordatorios por llamada o WhatsApp</p>
         </div>
       </div>
 
@@ -156,7 +165,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
         <div className="text-sm text-muted-foreground">Cargando...</div>
       ) : schedules.length === 0 ? (
         <div className="text-sm text-muted-foreground py-4 text-center">
-          No hay llamadas programadas
+          No hay alertas programadas
         </div>
       ) : (
         <div className="space-y-2">
@@ -168,8 +177,8 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
               }`}
             >
               <div className="flex items-center gap-3">
-                {schedule.scheduleType === 'specific' ? (
-                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                {schedule.notificationChannel === 'whatsapp' ? (
+                  <MessageCircle className="w-4 h-4 text-green-500" />
                 ) : (
                   <Phone className="w-4 h-4 text-muted-foreground" />
                 )}
@@ -186,7 +195,7 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
                 <Switch
                   checked={schedule.isActive}
                   onCheckedChange={(checked) => toggleActive.mutate({ id: schedule.id, isActive: checked })}
-                  aria-label="Activar/desactivar llamada"
+                  aria-label="Activar/desactivar alerta"
                 />
                 <Button 
                   variant="ghost" 
@@ -214,22 +223,40 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
 
       <Button onClick={openNewSchedule} variant="outline" className="w-full gap-2">
         <Plus className="w-4 h-4" />
-        Programar Nueva Llamada
+        Programar Nueva Alerta
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>{editingSchedule ? 'Editar Llamada' : 'Programar Llamada'}</SheetTitle>
+            <SheetTitle>{editingSchedule ? 'Editar Alerta' : 'Programar Alerta'}</SheetTitle>
             <SheetDescription>
-              El asistente IA te llamará para ayudarte a registrar tu información
+              Recibe recordatorios automáticos por llamada o WhatsApp
             </SheetDescription>
           </SheetHeader>
 
           <div className="space-y-6 mt-6">
+            {/* Notification Channel - Segmented Control */}
+            <div className="space-y-2">
+              <Label>Canal de notificación</Label>
+              <div className="flex rounded-lg bg-muted p-1 gap-1">
+                {NOTIFICATION_CHANNEL_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setNotificationChannel(value)}
+                    className={segmentedButtonClass(notificationChannel === value)}
+                  >
+                    {value === 'call' ? <Phone className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Time picker */}
             <div className="space-y-2">
-              <Label htmlFor="call-time">Hora de la llamada</Label>
+              <Label htmlFor="call-time">Hora</Label>
               <Input
                 id="call-time"
                 type="time"
@@ -246,24 +273,14 @@ export function AICallScheduleManager({ patientId, userId, userRole }: AICallSch
                 <button
                   type="button"
                   onClick={() => setScheduleType('recurring')}
-                  className={cn(
-                    "flex-1 min-h-[44px] px-4 py-2 rounded-md text-sm font-medium transition-all",
-                    scheduleType === 'recurring'
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+                  className={segmentedButtonClass(scheduleType === 'recurring')}
                 >
                   Semanal
                 </button>
                 <button
                   type="button"
                   onClick={() => setScheduleType('specific')}
-                  className={cn(
-                    "flex-1 min-h-[44px] px-4 py-2 rounded-md text-sm font-medium transition-all",
-                    scheduleType === 'specific'
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+                  className={segmentedButtonClass(scheduleType === 'specific')}
                 >
                   Fechas específicas
                 </button>
