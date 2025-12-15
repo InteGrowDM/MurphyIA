@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { AICallSchedule, AICallPurpose } from '@/types/diabetes';
+import { AICallSchedule, AICallPurpose, NotificationChannel } from '@/types/diabetes';
 import { useToast } from '@/hooks/use-toast';
 
 interface AICallScheduleDB {
@@ -14,6 +14,7 @@ interface AICallScheduleDB {
   specific_dates: string[] | null;
   call_purposes: string[];
   custom_message: string | null;
+  notification_channel: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,7 @@ const mapDBToSchedule = (db: AICallScheduleDB): AICallSchedule => ({
   specificDates: db.specific_dates || undefined,
   callPurposes: db.call_purposes as AICallPurpose[],
   customMessage: db.custom_message || undefined,
+  notificationChannel: (db.notification_channel || 'call') as NotificationChannel,
   isActive: db.is_active,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
@@ -45,6 +47,7 @@ export interface CreateScheduleData {
   specificDates?: string[];
   callPurposes: AICallPurpose[];
   customMessage?: string;
+  notificationChannel?: NotificationChannel;
 }
 
 export function useAICallSchedule(patientId?: string) {
@@ -80,15 +83,16 @@ export function useAICallSchedule(patientId?: string) {
         specific_dates: data.scheduleType === 'specific' ? data.specificDates : null,
         call_purposes: data.callPurposes,
         custom_message: data.customMessage || null,
+        notification_channel: data.notificationChannel || 'call',
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-call-schedules', patientId] });
-      toast({ title: 'Llamada programada', description: 'Se ha programado la llamada del asistente IA.' });
+      toast({ title: 'Alerta programada', description: 'Se ha programado la alerta automática.' });
     },
     onError: () => {
-      toast({ title: 'Error', description: 'No se pudo programar la llamada.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'No se pudo programar la alerta.', variant: 'destructive' });
     },
   });
 
@@ -103,6 +107,7 @@ export function useAICallSchedule(patientId?: string) {
       }
       if (data.callPurposes) updateData.call_purposes = data.callPurposes;
       if (data.customMessage !== undefined) updateData.custom_message = data.customMessage || null;
+      if (data.notificationChannel) updateData.notification_channel = data.notificationChannel;
 
       const { error } = await supabase
         .from('ai_call_schedules')
@@ -112,10 +117,10 @@ export function useAICallSchedule(patientId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-call-schedules', patientId] });
-      toast({ title: 'Llamada actualizada', description: 'Se ha actualizado la programación.' });
+      toast({ title: 'Alerta actualizada', description: 'Se ha actualizado la programación.' });
     },
     onError: () => {
-      toast({ title: 'Error', description: 'No se pudo actualizar la llamada.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'No se pudo actualizar la alerta.', variant: 'destructive' });
     },
   });
 
@@ -142,7 +147,7 @@ export function useAICallSchedule(patientId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-call-schedules', patientId] });
-      toast({ title: 'Llamada eliminada', description: 'Se ha eliminado la programación.' });
+      toast({ title: 'Alerta eliminada', description: 'Se ha eliminado la programación.' });
     },
     onError: () => {
       toast({ title: 'Error', description: 'No se pudo eliminar la llamada.', variant: 'destructive' });
