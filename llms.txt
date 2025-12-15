@@ -129,13 +129,27 @@ gender_type: 'masculino' | 'femenino' | 'otro' | 'prefiero_no_decir'
 
 | Tabla | Patient | Coadmin | Doctor |
 |-------|---------|---------|--------|
-| glucose_records | CRUD propio | SELECT asignado | - |
-| insulin_schedules | CRUD propio | SELECT/INSERT/UPDATE asignado | - |
-| sleep_records | CRUD propio | SELECT asignado | - |
-| stress_records | CRUD propio | SELECT asignado | - |
-| dizziness_records | CRUD propio | SELECT asignado | - |
-| ai_call_schedules | CRUD propio | CRUD asignado | - |
-| user_roles | SELECT propio | SELECT propio | SELECT propio |
+| `profiles` | SELECT/UPDATE propio | SELECT/UPDATE propio | SELECT/UPDATE propio |
+| `user_roles` | SELECT propio (INSERT/UPDATE/DELETE bloqueados) | SELECT propio (INSERT/UPDATE/DELETE bloqueados) | SELECT propio (INSERT/UPDATE/DELETE bloqueados) |
+| `patient_profiles` | SELECT/INSERT/UPDATE propio (no DELETE) | - | - |
+| `coadmin_profiles` | SELECT propio coadmin | SELECT propio | - |
+| `glucose_records` | CRUD propio | SELECT asignado | - |
+| `insulin_schedules` | CRUD propio | SELECT/INSERT/UPDATE asignado | - |
+| `sleep_records` | CRUD propio | SELECT asignado | - |
+| `stress_records` | CRUD propio | SELECT asignado | - |
+| `dizziness_records` | CRUD propio | SELECT asignado | - |
+| `ai_call_schedules` | CRUD propio | CRUD asignado | - |
+| `notification_preferences` | CRUD propio | CRUD propio | CRUD propio |
+
+### Notas de Seguridad RLS
+
+1. **Roles protegidos:** La tabla `user_roles` tiene políticas restrictivas que bloquean INSERT/UPDATE/DELETE directo. Solo el trigger `handle_new_user` (ejecutado con `service_role`) puede asignar roles.
+
+2. **Profiles gestionados por trigger:** La tabla `profiles` no permite INSERT/DELETE directo. Los perfiles se crean automáticamente via trigger `handle_new_user` al registrarse.
+
+3. **Patrón de acceso por patient_id:** Las tablas médicas (glucose, insulin, wellness) usan `patient_id` para control de acceso. Pacientes acceden via `patient_profiles.user_id = auth.uid()`, coadmins via `coadmin_profiles.patient_id`.
+
+4. **Políticas restrictivas:** Todas las políticas usan `Permissive: No` para mayor seguridad (requieren match explícito).
 
 ---
 
@@ -354,7 +368,9 @@ VITE_SUPABASE_PROJECT_ID=xxx
 ## Notas Importantes
 
 1. **Demo Mode:** La app soporta modo demo (`isDemoMode=true`) que usa datos mock sin autenticación
-2. **RLS:** Todas las tablas tienen Row Level Security habilitado
-3. **Auto-confirm:** Emails de registro se auto-confirman para desarrollo
-4. **Tipos auto-generados:** `src/integrations/supabase/types.ts` NO debe editarse manualmente
-5. **Touch targets:** Mínimo 44px para todos los elementos interactivos (Apple HIG)
+2. **RLS:** Todas las tablas tienen Row Level Security habilitado con políticas restrictivas
+3. **Roles protegidos:** `user_roles` bloquea INSERT/UPDATE/DELETE directo para prevenir escalación de privilegios
+4. **Profiles via trigger:** Perfiles y roles solo se crean via trigger `handle_new_user`, no por INSERT directo
+5. **Auto-confirm:** Emails de registro se auto-confirman para desarrollo
+6. **Tipos auto-generados:** `src/integrations/supabase/types.ts` NO debe editarse manualmente
+7. **Touch targets:** Mínimo 44px para todos los elementos interactivos (Apple HIG)

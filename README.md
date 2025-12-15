@@ -128,9 +128,17 @@ src/
 
 ### Funciones
 
-- `has_role(user_id, role)` - Verificar rol de usuario
-- `is_authorized_coadmin_email(email)` - Validar email de coadmin
-- `handle_new_user()` - Trigger post-registro
+- `has_role(user_id, role)` - Verificar rol de usuario (SECURITY DEFINER)
+- `is_authorized_coadmin_email(email)` - Validar email de coadmin para registro
+- `handle_new_user()` - Trigger post-registro que crea profiles, user_roles y patient/coadmin_profiles
+- `update_updated_at_column()` - Trigger para actualizar timestamps automáticamente
+
+### Seguridad RLS
+
+- **26 políticas RLS** implementadas en todas las tablas
+- **Roles protegidos:** `user_roles` bloquea INSERT/UPDATE/DELETE directo (solo via trigger)
+- **Profiles via trigger:** No se pueden crear perfiles manualmente, solo via `handle_new_user`
+- **Patrón patient_id:** Tablas médicas controladas por `patient_id` con acceso diferenciado por rol
 
 ## 👥 Roles de Usuario
 

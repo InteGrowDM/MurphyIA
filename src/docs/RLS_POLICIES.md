@@ -1,15 +1,15 @@
 # Políticas RLS - DiabetesManager Pro
 
-## ⚠️ BORRADOR - No ejecutar sin validación
+## Estado: ✅ Implementado y Activo
 
-Este documento define las políticas de Row Level Security para el sistema.
+Este documento describe las 26 políticas de Row Level Security actualmente implementadas en producción.
 
 ---
 
-## Función auxiliar para verificar roles
+## Funciones Auxiliares Implementadas
 
 ```sql
--- Security definer function para evitar recursión infinita
+-- Verificar si usuario tiene un rol específico (SECURITY DEFINER para evitar recursión)
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role user_role)
 RETURNS boolean
 LANGUAGE sql
@@ -20,304 +20,382 @@ AS $$
   SELECT EXISTS (
     SELECT 1
     FROM public.user_roles
-    WHERE profile_id = _user_id
-      AND role = _role
+    WHERE user_id = _user_id AND role = _role
   )
 $$;
 
--- Función para verificar si es coadmin de un paciente
-CREATE OR REPLACE FUNCTION public.is_coadmin_of(_user_id uuid, _patient_id uuid)
-RETURNS boolean
+-- Verificar email autorizado para registro de coadmin
+CREATE OR REPLACE FUNCTION public.is_authorized_coadmin_email(_email text)
+RETURNS TABLE(patient_profile_id uuid, patient_name text)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.coadmin_mapping
-    WHERE coadmin_id = _user_id
-      AND patient_id = _patient_id
-  )
+  SELECT pp.id, p.full_name
+  FROM patient_profiles pp
+  JOIN profiles p ON p.id = pp.user_id
+  WHERE LOWER(pp.coadmin_email) = LOWER(_email)
+    AND NOT EXISTS (
+      SELECT 1 FROM coadmin_profiles cp WHERE cp.patient_id = pp.id
+    )
 $$;
 
--- Función para verificar si es médico de un paciente
-CREATE OR REPLACE FUNCTION public.is_doctor_of(_user_id uuid, _patient_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
+-- Trigger para crear perfiles automáticamente post-registro
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.doctor_patients dp
-    JOIN public.doctors d ON d.id = dp.doctor_id
-    WHERE d.profile_id = _user_id
-      AND dp.patient_id = _patient_id
-      AND dp.status = 'active'
-  )
+DECLARE
+  _role user_role;
+  _patient_id UUID;
+BEGIN
+  _role := COALESCE((NEW.raw_user_meta_data ->> 'role')::user_role, 'patient');
+  
+  INSERT INTO public.profiles (id, full_name, phone)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''), NEW.raw_user_meta_data ->> 'phone');
+  
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, _role);
+  
+  IF _role = 'coadmin' THEN
+    _patient_id := (NEW.raw_user_meta_data ->> 'patient_id')::UUID;
+    IF _patient_id IS NOT NULL THEN
+      INSERT INTO public.coadmin_profiles (user_id, patient_id)
+      VALUES (NEW.id, _patient_id);
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
 $$;
 
--- Función para obtener el patient_id del usuario actual
-CREATE OR REPLACE FUNCTION public.get_my_patient_id()
-RETURNS uuid
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
+-- Trigger para actualizar updated_at automáticamente
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS trigger
+LANGUAGE plpgsql
 SET search_path = public
 AS $$
-  SELECT id FROM public.patient_profiles WHERE profile_id = auth.uid()
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
 $$;
 ```
 
 ---
 
-## Políticas para USER_ROLES
+## Políticas por Tabla
+
+### 1. PROFILES (2 políticas)
 
 ```sql
--- Los usuarios pueden ver sus propios roles
+-- Users can view own profile
+CREATE POLICY "Users can view own profile"
+ON public.profiles FOR SELECT
+USING (auth.uid() = id);
+
+-- Users can update own profile
+CREATE POLICY "Users can update own profile"
+ON public.profiles FOR UPDATE
+USING (auth.uid() = id);
+```
+
+**Nota:** No hay políticas INSERT/DELETE. Los perfiles se crean via trigger `handle_new_user`.
+
+---
+
+### 2. USER_ROLES (4 políticas - 3 restrictivas)
+
+```sql
+-- Users can view own roles
 CREATE POLICY "Users can view own roles"
 ON public.user_roles FOR SELECT
-TO authenticated
-USING (profile_id = auth.uid());
+USING (auth.uid() = user_id);
 
--- Solo admins pueden insertar roles (no implementado en MVP)
+-- No direct role inserts (bloqueo total)
+CREATE POLICY "No direct role inserts"
+ON public.user_roles FOR INSERT
+WITH CHECK (false);
+
+-- No direct role updates (bloqueo total)
+CREATE POLICY "No direct role updates"
+ON public.user_roles FOR UPDATE
+USING (false)
+WITH CHECK (false);
+
+-- No direct role deletes (bloqueo total)
+CREATE POLICY "No direct role deletes"
+ON public.user_roles FOR DELETE
+USING (false);
 ```
+
+**⚠️ Seguridad crítica:** Roles solo se asignan via trigger `handle_new_user` (service_role). Esto previene escalación de privilegios.
 
 ---
 
-## Políticas para PATIENT_PROFILES
+### 3. PATIENT_PROFILES (3 políticas)
 
 ```sql
--- Pacientes pueden ver y editar su propio perfil
-CREATE POLICY "Patients can view own profile"
+-- Patients can view own patient_profile
+CREATE POLICY "Patients can view own patient_profile"
 ON public.patient_profiles FOR SELECT
-TO authenticated
-USING (profile_id = auth.uid());
+USING (auth.uid() = user_id);
 
-CREATE POLICY "Patients can update own profile"
+-- Patients can insert own patient_profile
+CREATE POLICY "Patients can insert own patient_profile"
+ON public.patient_profiles FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Patients can update own patient_profile
+CREATE POLICY "Patients can update own patient_profile"
 ON public.patient_profiles FOR UPDATE
-TO authenticated
-USING (profile_id = auth.uid())
-WITH CHECK (profile_id = auth.uid());
+USING (auth.uid() = user_id);
+```
 
--- Coadmins pueden ver el perfil de su paciente asignado
-CREATE POLICY "Coadmins can view assigned patient"
-ON public.patient_profiles FOR SELECT
-TO authenticated
-USING (
-  public.is_coadmin_of(auth.uid(), id)
-);
+**Nota:** No hay política DELETE para proteger integridad de datos médicos.
 
--- Médicos pueden ver perfiles de sus pacientes
-CREATE POLICY "Doctors can view their patients"
-ON public.patient_profiles FOR SELECT
-TO authenticated
-USING (
-  public.is_doctor_of(auth.uid(), id)
-);
+---
+
+### 4. COADMIN_PROFILES (2 políticas)
+
+```sql
+-- Coadmins can view own profile
+CREATE POLICY "Coadmins can view own profile"
+ON public.coadmin_profiles FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Patients can view their coadmin
+CREATE POLICY "Patients can view their coadmin"
+ON public.coadmin_profiles FOR SELECT
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
+```
+
+**Nota:** No hay INSERT/UPDATE/DELETE. Coadmin profiles se crean via trigger.
+
+---
+
+### 5. GLUCOSE_RECORDS (2 políticas)
+
+```sql
+-- Patients can manage own glucose records
+CREATE POLICY "Patients can manage own glucose records"
+ON public.glucose_records FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
+
+-- Coadmins can view patient glucose records
+CREATE POLICY "Coadmins can view patient glucose records"
+ON public.glucose_records FOR SELECT
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para GLUCOMETRIAS
+### 6. INSULIN_SCHEDULES (4 políticas)
 
 ```sql
--- Pacientes pueden CRUD sus propias glucometrías
-CREATE POLICY "Patients can view own glucometrias"
-ON public.glucometrias FOR SELECT
-TO authenticated
-USING (patient_id = public.get_my_patient_id());
+-- Patients can manage own insulin
+CREATE POLICY "Patients can manage own insulin"
+ON public.insulin_schedules FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+))
+WITH CHECK (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
 
-CREATE POLICY "Patients can insert own glucometrias"
-ON public.glucometrias FOR INSERT
-TO authenticated
-WITH CHECK (patient_id = public.get_my_patient_id());
+-- Coadmins can view patient insulin
+CREATE POLICY "Coadmins can view patient insulin"
+ON public.insulin_schedules FOR SELECT
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 
-CREATE POLICY "Patients can update own glucometrias"
-ON public.glucometrias FOR UPDATE
-TO authenticated
-USING (patient_id = public.get_my_patient_id())
-WITH CHECK (patient_id = public.get_my_patient_id());
+-- Coadmins can insert patient insulin
+CREATE POLICY "Coadmins can insert patient insulin"
+ON public.insulin_schedules FOR INSERT
+WITH CHECK (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 
-CREATE POLICY "Patients can delete own glucometrias"
-ON public.glucometrias FOR DELETE
-TO authenticated
-USING (patient_id = public.get_my_patient_id());
-
--- Coadmins pueden ver glucometrías (NO eliminar)
-CREATE POLICY "Coadmins can view patient glucometrias"
-ON public.glucometrias FOR SELECT
-TO authenticated
-USING (
-  public.is_coadmin_of(auth.uid(), patient_id)
-);
-
--- Médicos pueden ver glucometrías
-CREATE POLICY "Doctors can view patient glucometrias"
-ON public.glucometrias FOR SELECT
-TO authenticated
-USING (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
+-- Coadmins can update patient insulin
+CREATE POLICY "Coadmins can update patient insulin"
+ON public.insulin_schedules FOR UPDATE
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+))
+WITH CHECK (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para INSULINA, SUENO, ESTRES
+### 7. SLEEP_RECORDS (2 políticas)
 
 ```sql
--- (Mismo patrón que glucometrias)
--- Paciente: CRUD completo
--- Coadmin: Solo lectura
--- Médico: Solo lectura
+-- Patients can manage own sleep records
+CREATE POLICY "Patients can manage own sleep records"
+ON public.sleep_records FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
+
+-- Coadmins can view patient sleep records
+CREATE POLICY "Coadmins can view patient sleep records"
+ON public.sleep_records FOR SELECT
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para ALERTAS
+### 8. STRESS_RECORDS (2 políticas)
 
 ```sql
--- Pacientes pueden ver sus alertas
-CREATE POLICY "Patients can view own alerts"
-ON public.alertas FOR SELECT
-TO authenticated
-USING (patient_id = public.get_my_patient_id());
+-- Patients can manage own stress records
+CREATE POLICY "Patients can manage own stress records"
+ON public.stress_records FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
 
--- Pacientes pueden marcar alertas como resueltas
-CREATE POLICY "Patients can resolve own alerts"
-ON public.alertas FOR UPDATE
-TO authenticated
-USING (patient_id = public.get_my_patient_id())
-WITH CHECK (
-  patient_id = public.get_my_patient_id()
-  AND resolved = TRUE -- Solo pueden marcar como resuelto
-);
-
--- Coadmins pueden ver alertas
-CREATE POLICY "Coadmins can view patient alerts"
-ON public.alertas FOR SELECT
-TO authenticated
-USING (
-  public.is_coadmin_of(auth.uid(), patient_id)
-);
-
--- Médicos pueden ver y crear alertas
-CREATE POLICY "Doctors can view patient alerts"
-ON public.alertas FOR SELECT
-TO authenticated
-USING (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
-
-CREATE POLICY "Doctors can create patient alerts"
-ON public.alertas FOR INSERT
-TO authenticated
-WITH CHECK (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
-
-CREATE POLICY "Doctors can resolve patient alerts"
-ON public.alertas FOR UPDATE
-TO authenticated
-USING (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
+-- Coadmins can view patient stress records
+CREATE POLICY "Coadmins can view patient stress records"
+ON public.stress_records FOR SELECT
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para AI_REPORTS
+### 9. DIZZINESS_RECORDS (2 políticas)
 
 ```sql
--- Pacientes pueden ver sus reportes
-CREATE POLICY "Patients can view own reports"
-ON public.ai_reports FOR SELECT
-TO authenticated
-USING (patient_id = public.get_my_patient_id());
+-- Patients can manage own dizziness records
+CREATE POLICY "Patients can manage own dizziness records"
+ON public.dizziness_records FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
 
--- Coadmins pueden ver reportes del paciente
-CREATE POLICY "Coadmins can view patient reports"
-ON public.ai_reports FOR SELECT
-TO authenticated
-USING (
-  public.is_coadmin_of(auth.uid(), patient_id)
-);
-
--- Médicos pueden ver y generar reportes
-CREATE POLICY "Doctors can view patient reports"
-ON public.ai_reports FOR SELECT
-TO authenticated
-USING (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
-
-CREATE POLICY "Doctors can create patient reports"
-ON public.ai_reports FOR INSERT
-TO authenticated
-WITH CHECK (
-  public.is_doctor_of(auth.uid(), patient_id)
-);
+-- Coadmins can view patient dizziness records
+CREATE POLICY "Coadmins can view patient dizziness records"
+ON public.dizziness_records FOR SELECT
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para NOTIFICATIONS
+### 10. AI_CALL_SCHEDULES (2 políticas)
 
 ```sql
--- Usuarios solo ven sus propias notificaciones
-CREATE POLICY "Users can view own notifications"
-ON public.notifications FOR SELECT
-TO authenticated
-USING (user_id = auth.uid());
+-- Patients can manage own call schedules
+CREATE POLICY "Patients can manage own call schedules"
+ON public.ai_call_schedules FOR ALL
+USING (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+))
+WITH CHECK (patient_id IN (
+  SELECT id FROM patient_profiles WHERE user_id = auth.uid()
+));
 
-CREATE POLICY "Users can update own notifications"
-ON public.notifications FOR UPDATE
-TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+-- Coadmins can manage patient call schedules
+CREATE POLICY "Coadmins can manage patient call schedules"
+ON public.ai_call_schedules FOR ALL
+USING (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+))
+WITH CHECK (patient_id IN (
+  SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid()
+));
 ```
 
 ---
 
-## Políticas para AUDIT_LOGS
+### 11. NOTIFICATION_PREFERENCES (1 política)
 
 ```sql
--- Solo el sistema puede escribir (via service_role)
--- Médicos pueden leer logs de sus pacientes
-
-CREATE POLICY "Doctors can view patient audit logs"
-ON public.audit_logs FOR SELECT
-TO authenticated
-USING (
-  public.has_role(auth.uid(), 'doctor')
-  AND entity_type IN ('glucometrias', 'insulina', 'sueno', 'estres', 'alertas')
-);
+-- Users manage own notification preferences
+CREATE POLICY "Users manage own notification preferences"
+ON public.notification_preferences FOR ALL
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 ```
 
 ---
 
 ## Resumen de Permisos por Rol
 
-| Tabla | Paciente | Coadmin | Médico |
-|-------|----------|---------|--------|
-| patient_profiles | R/W propio | R asignado | R asignados |
-| glucometrias | CRUD | R | R |
-| insulina | CRUD | R | R |
-| sueno | CRUD | R | R |
-| estres | CRUD | R | R |
-| alertas | R, Resolver | R | R/W |
-| ai_reports | R | R | R/W |
-| notifications | R/W propio | R/W propio | R/W propio |
-| audit_logs | - | - | R (limitado) |
+| Tabla | Paciente | Co-administrador |
+|-------|----------|------------------|
+| `profiles` | SELECT, UPDATE propio | SELECT, UPDATE propio |
+| `user_roles` | SELECT propio | SELECT propio |
+| `patient_profiles` | SELECT, INSERT, UPDATE propio | - |
+| `coadmin_profiles` | SELECT su coadmin | SELECT propio |
+| `glucose_records` | CRUD propio | SELECT asignado |
+| `insulin_schedules` | CRUD propio | SELECT, INSERT, UPDATE asignado |
+| `sleep_records` | CRUD propio | SELECT asignado |
+| `stress_records` | CRUD propio | SELECT asignado |
+| `dizziness_records` | CRUD propio | SELECT asignado |
+| `ai_call_schedules` | CRUD propio | CRUD asignado |
+| `notification_preferences` | CRUD propio | CRUD propio |
+
+**Total: 26 políticas RLS activas**
 
 ---
 
 ## Consideraciones de Seguridad
 
-1. **Separación de roles**: Roles almacenados en tabla separada
-2. **Security Definer Functions**: Evitan recursión RLS
-3. **Principio de menor privilegio**: Coadmins NO pueden eliminar datos
-4. **Auditoría**: Todos los cambios se registran
-5. **Consentimiento**: Requerido en onboarding antes de crear perfil
+### 1. Protección de Roles
+- La tabla `user_roles` tiene políticas que bloquean INSERT/UPDATE/DELETE directo
+- Solo el trigger `handle_new_user` (ejecutado con `service_role`) puede asignar roles
+- Esto previene ataques de escalación de privilegios
+
+### 2. Perfiles Gestionados por Trigger
+- Los perfiles en `profiles`, `user_roles` y `coadmin_profiles` se crean automáticamente
+- No hay políticas INSERT directas para estas tablas
+- El trigger `handle_new_user` se ejecuta después de `auth.users` INSERT
+
+### 3. Patrón de Acceso por Patient_ID
+- Tablas médicas usan `patient_id` como clave de acceso
+- Pacientes acceden via: `patient_id IN (SELECT id FROM patient_profiles WHERE user_id = auth.uid())`
+- Coadmins acceden via: `patient_id IN (SELECT patient_id FROM coadmin_profiles WHERE user_id = auth.uid())`
+
+### 4. Políticas Restrictivas
+- Todas las políticas usan `Permissive: No` (restrictivas)
+- Requieren match explícito, no permiten acceso por defecto
+
+### 5. Separación de Roles
+- Roles almacenados en tabla separada (`user_roles`), no en `profiles`
+- Función `has_role()` es `SECURITY DEFINER` para evitar recursión RLS
+
+### 6. Integridad de Datos Médicos
+- `patient_profiles` no tiene política DELETE para proteger historial
+- Coadmins no pueden DELETE datos del paciente
+- Solo pueden SELECT o UPDATE/INSERT según la tabla
+
+---
+
+## Verificación
+
+Para verificar las políticas activas:
+
+```sql
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
+```
