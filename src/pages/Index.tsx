@@ -1,24 +1,12 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Users, ArrowRight, Zap, Shield, Stethoscope, UserPlus, type LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { UserRole } from '@/types/diabetes';
-import { getHomeRoute } from '@/lib/navigation';
+import { Activity, ArrowRight, Zap, Shield, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
-
-interface RoleOption {
-  role: UserRole;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-  color: string;
-}
+import { getHomeRoute } from '@/lib/navigation';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { session, userRole, isLoading, enterDemoMode } = useAuth();
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const { session, userRole, isLoading } = useAuth();
 
   // Redirect authenticated users to their dashboard
   useEffect(() => {
@@ -28,54 +16,14 @@ const Index = () => {
     }
   }, [session, userRole, isLoading, navigate]);
 
-  const roles: RoleOption[] = [
-    {
-      role: 'patient',
-      label: 'Paciente',
-      description: 'Registra y visualiza tus glucometrías, sueño, insulina y más.',
-      icon: Activity,
-      color: 'from-purple-600 to-purple-400'
-    },
-    {
-      role: 'coadmin',
-      label: 'Co-administrador',
-      description: 'Acompaña a un paciente en su seguimiento diario.',
-      icon: Users,
-      color: 'from-info to-cyan-400'
-    },
-    {
-      role: 'doctor',
-      label: 'Médico',
-      description: 'Gestiona y da seguimiento a todos tus pacientes.',
-      icon: Stethoscope,
-      color: 'from-emerald-600 to-emerald-400'
-    }
-  ];
-
-  const handleDemoMode = () => {
-    if (selectedRole) {
-      enterDemoMode(selectedRole);
-      const targetPath = getHomeRoute(selectedRole);
-      navigate(targetPath, { state: { role: selectedRole } });
-    }
+  const handleLogin = () => {
+    navigate('/auth?mode=login');
   };
 
   const handleCreateAccount = () => {
     navigate('/auth?mode=register');
   };
 
-  const handleLogin = () => {
-    navigate('/auth?mode=login');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, role: UserRole) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setSelectedRole(role);
-    }
-  };
-
-  // Show loading while checking auth state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -89,7 +37,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col safe-area-inset">
-      {/* Hero Background - HIG: reduced blur for performance */}
+      {/* Hero Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/15 rounded-full blur-[80px]" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-[80px]" />
@@ -117,7 +65,6 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Login button in header */}
           <button
             onClick={handleLogin}
             className="text-hig-sm text-primary hover:text-primary/80 transition-colors font-medium"
@@ -129,7 +76,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main id="main-content" className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="max-w-4xl mx-auto text-center mb-12">
+        <div className="max-w-4xl mx-auto text-center">
           {/* Title */}
           <h2 className="text-hig-3xl md:text-[clamp(2.5rem,5vw,4rem)] font-bold text-foreground mb-4 animate-fade-up leading-hig-tight">
             Tu salud,{' '}
@@ -153,59 +100,14 @@ const Index = () => {
               <span className="text-hig-sm text-muted-foreground">Datos seguros</span>
             </div>
           </div>
-        </div>
-
-        {/* Role Selection */}
-        <div className="w-full max-w-4xl mx-auto animate-fade-up stagger-3">
-          <p className="text-center text-muted-foreground mb-6 text-hig-base" id="role-selection-label">
-            Selecciona tu rol para continuar
-          </p>
-          
-          <div 
-            className="grid md:grid-cols-3 gap-4 mb-8"
-            role="radiogroup"
-            aria-labelledby="role-selection-label"
-          >
-            {roles.map(({ role, label, description, icon: Icon, color }) => (
-              <button
-                key={role}
-                role="radio"
-                aria-checked={selectedRole === role}
-                tabIndex={0}
-                onClick={() => setSelectedRole(role)}
-                onKeyDown={(e) => handleKeyDown(e, role)}
-                className={cn(
-                  "glass-card p-6 text-left",
-                  "transition-all duration-hig-fast ease-hig-out",
-                  "hover:shadow-elevation-2 focus-ring press-feedback",
-                  selectedRole === role && "ring-2 ring-primary elevation-2"
-                )}
-              >
-                <div className={cn(
-                  "w-14 h-14 rounded-hig-lg flex items-center justify-center mb-4",
-                  "bg-gradient-to-br elevation-1",
-                  color
-                )}>
-                  <Icon className="w-7 h-7 text-foreground" aria-hidden="true" />
-                </div>
-                <h3 className="font-semibold text-hig-lg text-foreground mb-2 leading-hig-tight">{label}</h3>
-                <p className="text-hig-sm text-muted-foreground leading-hig-normal">{description}</p>
-              </button>
-            ))}
-          </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-up stagger-3">
             <button
-              onClick={handleDemoMode}
-              disabled={!selectedRole}
-              aria-disabled={!selectedRole}
-              className={cn(
-                "flex items-center justify-center gap-2 px-6 py-3 text-hig-base rounded-hig border border-border bg-secondary/50 hover:bg-secondary transition-colors focus-ring",
-                !selectedRole && "opacity-50 cursor-not-allowed pointer-events-none"
-              )}
+              onClick={handleLogin}
+              className="flex items-center justify-center gap-2 px-6 py-3 text-hig-base rounded-hig border border-border bg-secondary/50 hover:bg-secondary transition-colors focus-ring"
             >
-              Probar sin cuenta
+              Iniciar sesión
               <ArrowRight className="w-[var(--icon-md)] h-[var(--icon-md)]" aria-hidden="true" />
             </button>
             
