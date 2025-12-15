@@ -1,0 +1,360 @@
+# DiabetesManager Pro - Contexto para LLMs
+
+## Resumen del Proyecto
+
+DiabetesManager Pro es un dashboard inteligente para el seguimiento de pacientes diabéticos con persistencia en Lovable Cloud (Supabase). La aplicación soporta tres roles de usuario con diferentes niveles de acceso y funcionalidades.
+
+**Stack Tecnológico:**
+- Frontend: React 18 + TypeScript + Vite
+- Estilos: Tailwind CSS + Shadcn/UI
+- Backend: Lovable Cloud (Supabase)
+- Estado: TanStack React Query
+- Validación: Zod + React Hook Form
+- Gráficos: Recharts
+
+---
+
+## Arquitectura de la Aplicación
+
+### Estructura de Carpetas
+
+```
+src/
+├── components/
+│   ├── alerts/              # AICallScheduleManager - alertas automáticas
+│   ├── auth/                # LoginForm, PatientRegisterForm, CoadminRegisterForm, ProtectedRoute
+│   ├── daily-log/           # DailyLogInputDialog - registro unificado
+│   ├── dashboard/           # DashboardLayout, PatientCard, HabitTrackerCard, XPDonut, GlucoseChart
+│   ├── glucose/             # GlucoseSlotCard, GlucoseLogSheet, ViewModeSelector, vistas (Daily/Weekly/Monthly/Quarterly)
+│   ├── insulin/             # InsulinConfigCard, InsulinUpdateSheet, InsulinHistoryTable
+│   ├── medico/              # MedicoLayout, PatientsDataTable, ReportCard
+│   ├── navigation/          # TopNavbar (desktop), MobileBottomNav (mobile)
+│   ├── settings/            # PersonalDataSheet, SecuritySheet, NotificationsSheet, DevicesSheet
+│   ├── wellness/            # WellnessHistorySheet
+│   └── ui/                  # Componentes Shadcn/UI personalizados
+├── contexts/
+│   └── AuthContext.tsx      # Autenticación y gestión de sesión
+├── hooks/
+│   ├── useGlucoseLog.ts     # CRUD glucosa con React Query
+│   ├── useInsulinSchedule.ts # CRUD insulina con historial
+│   ├── useWellnessLog.ts    # CRUD sueño, estrés, mareos
+│   ├── useXPCalculation.ts  # Cálculo de XP y niveles
+│   └── useAICallSchedule.ts # Gestión de alertas automáticas
+├── pages/
+│   ├── medico/              # Pacientes.tsx, PacienteDetalle.tsx, Informes.tsx, Alertas.tsx
+│   ├── Index.tsx            # Landing page
+│   ├── Auth.tsx             # Login y registro
+│   ├── Dashboard.tsx        # Dashboard principal (paciente/coadmin)
+│   ├── Glucometrias.tsx     # Tracking de glucosa (4 vistas)
+│   ├── Insulina.tsx         # Gestión de insulina
+│   ├── Alertas.tsx          # Alertas automáticas (llamada/WhatsApp)
+│   ├── Configuracion.tsx    # Configuración de usuario
+│   └── NotFound.tsx         # 404
+├── types/
+│   ├── diabetes.ts          # Tipos principales del dominio
+│   └── auth.ts              # Tipos de autenticación
+├── lib/
+│   ├── constants.ts         # Design tokens y constantes
+│   ├── navigation.ts        # getNavItems(role) - navegación condicional
+│   ├── xpSystem.ts          # Lógica del sistema XP
+│   └── utils.ts             # Utilidades (cn, formatters)
+└── integrations/
+    └── supabase/
+        ├── client.ts        # Cliente Supabase (auto-generado)
+        └── types.ts         # Tipos de BD (auto-generado)
+```
+
+### Patrones de Componentes
+
+1. **Layouts por Rol:**
+   - `DashboardLayout` - Paciente y Co-administrador
+   - `MedicoLayout` - Médico/Doctor
+
+2. **Navegación Condicional:**
+   - `getNavItems(role)` en `src/lib/navigation.ts`
+   - TopNavbar (desktop ≥768px) + MobileBottomNav (mobile <768px)
+
+3. **Dialog Unificado:**
+   - `DailyLogInputDialog` con prop `type` para diferentes contenidos
+   - Variantes: glucose, sleep, stress, dizziness, insulin
+
+4. **Hooks con React Query:**
+   - Patrón: `useXxxLog(patientId?)` con fallback a mock data en demo mode
+   - Queries + Mutations con invalidación automática
+
+---
+
+## Esquema de Base de Datos
+
+### Tablas Principales (11)
+
+| Tabla | Descripción | Relaciones |
+|-------|-------------|------------|
+| `profiles` | Datos básicos de usuario (nombre, teléfono) | PK: user_id (auth.users) |
+| `user_roles` | Roles de usuario (patient, coadmin, doctor) | FK: user_id |
+| `patient_profiles` | Perfil médico del paciente | FK: user_id |
+| `coadmin_profiles` | Vinculación coadmin-paciente | FK: user_id, patient_id |
+| `glucose_records` | Mediciones de glucosa | FK: patient_id |
+| `insulin_schedules` | Historial de dosis de insulina | FK: patient_id |
+| `sleep_records` | Registros de sueño | FK: patient_id |
+| `stress_records` | Registros de estrés | FK: patient_id |
+| `dizziness_records` | Registros de mareos | FK: patient_id |
+| `notification_preferences` | Preferencias de notificaciones | FK: user_id |
+| `ai_call_schedules` | Programación de alertas automáticas | FK: patient_id |
+
+### Funciones de Base de Datos
+
+```sql
+-- Verificar si usuario tiene un rol específico
+has_role(_user_id UUID, _role user_role) RETURNS BOOLEAN
+
+-- Verificar email autorizado para coadmin
+is_authorized_coadmin_email(_email TEXT) RETURNS TABLE(patient_profile_id, patient_name)
+
+-- Trigger para actualizar updated_at
+update_updated_at_column() RETURNS TRIGGER
+
+-- Trigger post-signup para crear perfiles
+handle_new_user() RETURNS TRIGGER
+```
+
+### Enums
+
+```sql
+user_role: 'patient' | 'coadmin' | 'doctor'
+gender_type: 'masculino' | 'femenino' | 'otro' | 'prefiero_no_decir'
+```
+
+### Políticas RLS por Rol
+
+| Tabla | Patient | Coadmin | Doctor |
+|-------|---------|---------|--------|
+| glucose_records | CRUD propio | SELECT asignado | - |
+| insulin_schedules | CRUD propio | SELECT/INSERT/UPDATE asignado | - |
+| sleep_records | CRUD propio | SELECT asignado | - |
+| stress_records | CRUD propio | SELECT asignado | - |
+| dizziness_records | CRUD propio | SELECT asignado | - |
+| ai_call_schedules | CRUD propio | CRUD asignado | - |
+| user_roles | SELECT propio | SELECT propio | SELECT propio |
+
+---
+
+## Sistema de Autenticación
+
+### Flujo de Registro
+
+1. **Paciente:**
+   - 4 pasos: credenciales → datos personales → datos médicos → coadmin opcional
+   - Trigger `handle_new_user` crea: profiles + user_roles + patient_profiles
+
+2. **Co-administrador:**
+   - Requiere email pre-autorizado por paciente
+   - `is_authorized_coadmin_email()` valida antes de registro
+   - Trigger crea: profiles + user_roles + coadmin_profiles
+
+3. **Médico:**
+   - Registro estándar con role='doctor'
+   - Trigger crea: profiles + user_roles
+
+### AuthContext
+
+```typescript
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  userRole: 'patient' | 'coadmin' | 'doctor' | null;
+  profile: Profile | null;
+  patientProfile: PatientProfile | null;
+  coadminProfile: CoadminProfile | null;
+  isLoading: boolean;
+  isDemoMode: boolean;
+  
+  signIn(email, password): Promise<AuthError | null>;
+  signUp(data): Promise<AuthError | null>;
+  signUpAsCoadmin(data): Promise<AuthError | null>;
+  checkCoadminEmail(email): Promise<{patientId, patientName} | null>;
+  signOut(): Promise<void>;
+  enterDemoMode(role): void;
+  exitDemoMode(): void;
+  refreshProfile(): Promise<void>;
+}
+```
+
+---
+
+## Funcionalidades Principales
+
+### 1. Tracking de Glucosa
+
+- **6 slots diarios:** before_breakfast, after_breakfast, before_lunch, after_lunch, before_dinner, after_dinner
+- **4 vistas:** Diaria (editable), Semanal, Mensual, Trimestral (solo lectura)
+- **Rangos:** critical_low (<70), low (70-99), normal (100-180), high (180-199), critical_high (≥200)
+- **Estadísticas:** promedio, min/max, % en rango, desviación estándar
+
+### 2. Gestión de Insulina
+
+- **Tipos:** Rápida (Humalog, NovoRapid, Apidra, Fiasp, Lyumjev) y Basal (Lantus, Toujeo, Levemir, Tresiba, Basaglar)
+- **Historial:** Tracking de todos los cambios de dosis con razón, fecha efectiva, médico ordenante
+- **Cálculo:** Variación porcentual automática (ej: "10U → 12U (+20%)")
+
+### 3. Tracking de Bienestar
+
+- **Sueño:** horas (0-24), calidad (1-5)
+- **Estrés:** nivel (1-10), notas opcionales
+- **Mareos:** severidad (1-5), duración (minutos), síntomas (náusea, visión borrosa, debilidad, sudoración, confusión)
+
+### 4. Sistema XP
+
+```
+XP_slots = min(completados, 3) × 15 + max(0, completados - 3) × 5
+XP_rango = (mediciones_en_rango / total_mediciones) × 30
+XP_bienestar = 5 (sueño) + 5 (estrés)
+XP_base = XP_slots + XP_rango + XP_bienestar
+XP_final = XP_base × (1 + streak_days × 0.03)
+```
+
+**Niveles:**
+- Principiante: 0-299 XP
+- Intermedio: 300-599 XP
+- Avanzado: 600-899 XP
+- Experto: 900-1199 XP
+- Maestro del Control: 1200+ XP
+
+### 5. Alertas Automáticas
+
+- **Canales:** Llamada (ElevenLabs) o WhatsApp
+- **Tipos de programación:** Recurrente (días de semana) o Fechas específicas
+- **Propósitos:** Recordatorio de glucosa, bienestar, insulina, mensaje personalizado
+
+---
+
+## Principios de Diseño
+
+### Apple HIG Aplicados
+
+1. **Claridad:** Contenido priorizado sobre decoración
+2. **Deferencia:** UI que realza el contenido sin competir
+3. **Profundidad:** Jerarquía visual clara
+4. **Consistencia:** Patrones repetidos en toda la app
+5. **Interacción directa:** Feedback inmediato
+6. **Metáforas familiares:** Iconos y patrones reconocibles
+7. **Estética funcional:** Diseño que comunica función
+8. **Control del usuario:** Acciones reversibles
+9. **Feedback inmediato:** Toasts y estados de carga
+10. **Legibilidad:** Contraste WCAG AA
+
+### Design Tokens (src/index.css)
+
+```css
+/* Espaciado (base 4px) */
+--space-1: 4px;   --space-2: 8px;   --space-3: 12px;
+--space-4: 16px;  --space-6: 24px;  --space-8: 32px;
+
+/* Touch targets */
+--touch-target-min: 44px;
+
+/* Iconos */
+--icon-sm: 16px;  --icon-md: 20px;  --icon-lg: 24px;
+
+/* Elevación */
+--elevation-1: 0 1px 3px rgba(0,0,0,0.1);
+--elevation-2: 0 4px 6px rgba(0,0,0,0.1);
+--elevation-3: 0 10px 15px rgba(0,0,0,0.1);
+
+/* Animaciones */
+--duration-fast: 150ms;
+--duration-normal: 250ms;
+--ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+```
+
+### Paleta de Colores (Tema Oscuro)
+
+```css
+--purple-500: #B46BFF;  /* Acento principal */
+--purple-400: #D08BFF;  /* Hover */
+--purple-600: #8A32FF;  /* Active */
+--bg-dark-900: #0D021F; /* Fondo principal */
+--bg-dark-800: #1A0332; /* Fondo secundario */
+```
+
+---
+
+## Convenciones de Código
+
+### Nombres
+
+- **Componentes:** PascalCase (`GlucoseSlotCard.tsx`)
+- **Hooks:** camelCase con prefijo use (`useGlucoseLog.ts`)
+- **Tipos:** PascalCase (`GlucometryType`)
+- **Constantes:** SCREAMING_SNAKE_CASE (`MEAL_TIME_SLOTS`)
+
+### Patrones
+
+```typescript
+// Hook con React Query
+const useXxxLog = (patientId?: string) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['xxx', patientId],
+    queryFn: () => supabase.from('xxx').select('*'),
+    enabled: !!patientId,
+  });
+  
+  const mutation = useMutation({
+    mutationFn: (data) => supabase.from('xxx').insert(data),
+    onSuccess: () => queryClient.invalidateQueries(['xxx']),
+  });
+  
+  return { records: data ?? [], isLoading, save: mutation.mutate };
+};
+
+// Validación Zod
+const schema = z.object({
+  value: z.number().min(20).max(600),
+  notes: z.string().optional(),
+});
+
+// Form con React Hook Form
+const form = useForm<z.infer<typeof schema>>({
+  resolver: zodResolver(schema),
+  defaultValues: { value: 100, notes: '' },
+});
+```
+
+---
+
+## Roadmap
+
+### Pendiente
+
+- [ ] Integración ElevenLabs para llamadas de voz IA
+- [ ] Integración WhatsApp Business API para alertas
+- [ ] CRM completo para médicos (informes IA, alertas consolidadas)
+- [ ] Sincronización con glucómetros vía Bluetooth
+- [ ] PWA con notificaciones push
+
+### Consideraciones Futuras
+
+- Exportación de datos (PDF, CSV)
+- Integración con historias clínicas electrónicas
+- Análisis predictivo con ML
+- Soporte multi-idioma
+
+---
+
+## Variables de Entorno
+
+```env
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJxxx
+VITE_SUPABASE_PROJECT_ID=xxx
+```
+
+---
+
+## Notas Importantes
+
+1. **Demo Mode:** La app soporta modo demo (`isDemoMode=true`) que usa datos mock sin autenticación
+2. **RLS:** Todas las tablas tienen Row Level Security habilitado
+3. **Auto-confirm:** Emails de registro se auto-confirman para desarrollo
+4. **Tipos auto-generados:** `src/integrations/supabase/types.ts` NO debe editarse manualmente
+5. **Touch targets:** Mínimo 44px para todos los elementos interactivos (Apple HIG)

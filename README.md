@@ -1,6 +1,6 @@
 # DiabetesManager Pro
 
-Dashboard inteligente para seguimiento de pacientes diabéticos con integración Telegram, módulo de IA (Shaun Murphy) y CRM médico.
+Dashboard inteligente para seguimiento de pacientes diabéticos con persistencia en Lovable Cloud, sistema de gamificación XP, y soporte para tres roles de usuario.
 
 ## 🚀 Quick Start
 
@@ -14,52 +14,147 @@ npm run dev
 
 La aplicación estará disponible en `http://localhost:8080`
 
+## ✅ Funcionalidades Implementadas
+
+### Autenticación
+- [x] Registro de pacientes (4 pasos con datos médicos completos)
+- [x] Registro de co-administradores (email pre-autorizado)
+- [x] Login con email/password
+- [x] Modo demo para testing sin autenticación
+- [x] RLS policies por rol
+
+### Tracking de Glucosa
+- [x] 6 slots diarios (antes/después de cada comida)
+- [x] Vista diaria editable
+- [x] Vista semanal (solo lectura)
+- [x] Vista mensual con calendario
+- [x] Vista trimestral con comparación
+- [x] Estadísticas: promedio, min/max, % en rango, desviación estándar
+- [x] Indicadores visuales por rango (normal, alto, bajo, crítico)
+
+### Gestión de Insulina
+- [x] Configuración de insulina rápida y basal
+- [x] Historial completo de cambios de dosis
+- [x] Cálculo automático de variación porcentual
+- [x] Tracking de médico ordenante y razón de cambio
+- [x] Marcas populares pre-configuradas
+
+### Tracking de Bienestar
+- [x] Registro de sueño (horas + calidad)
+- [x] Registro de estrés (nivel 1-10)
+- [x] Registro de mareos (severidad + síntomas)
+- [x] Historial de últimos 30 días
+- [x] Estadísticas de bienestar
+
+### Sistema XP
+- [x] Puntos por mediciones completadas
+- [x] Bonus por mediciones en rango
+- [x] Bonus por registro de bienestar
+- [x] Multiplicador por racha (streak)
+- [x] 5 niveles: Principiante → Maestro del Control
+
+### Alertas Automáticas
+- [x] Programación recurrente (días de semana)
+- [x] Programación por fechas específicas
+- [x] Canal: Llamada o WhatsApp
+- [x] Múltiples propósitos (glucosa, bienestar, insulina, personalizado)
+
+### Configuración
+- [x] Datos personales editables
+- [x] Cambio de contraseña
+- [x] Preferencias de notificaciones
+- [x] Gestión de dispositivos conectados
+
 ## 📁 Estructura del Proyecto
 
 ```
 src/
 ├── components/
-│   ├── dashboard/
-│   │   ├── DashboardLayout.tsx    # Layout principal con sidebar
-│   │   ├── PatientCard.tsx        # Tarjeta de información del paciente
-│   │   ├── HabitTrackerCard.tsx   # Seguimiento de hábitos diarios
-│   │   ├── XPDonut.tsx            # Gráfico circular de progreso XP
-│   │   ├── CRMList.tsx            # Lista CRM para médicos
-│   │   ├── GlucoseChart.tsx       # Gráfico de tendencia glucémica
-│   │   └── AlertsPanel.tsx        # Panel de alertas
-│   └── ui/                        # Componentes Shadcn/UI
-├── data/
-│   └── mockPatients.json          # Datos mock (5 pacientes)
-├── docs/
-│   ├── ER_DIAGRAM.md              # Diagrama Entidad-Relación
-│   ├── SQL_MIGRATION_DRAFT.sql    # Script SQL (borrador)
-│   ├── RLS_POLICIES.md            # Políticas de seguridad RLS
-│   └── SHAUN_MURPHY_IA_SPEC.md    # Especificación del módulo IA
+│   ├── alerts/           # Alertas automáticas (llamada/WhatsApp)
+│   ├── auth/             # Formularios de autenticación
+│   ├── daily-log/        # Dialog unificado de registro
+│   ├── dashboard/        # Componentes del dashboard
+│   ├── glucose/          # Tracking de glucosa (4 vistas)
+│   ├── insulin/          # Gestión de insulina
+│   ├── medico/           # Componentes del rol médico
+│   ├── navigation/       # TopNavbar y MobileBottomNav
+│   ├── settings/         # Sheets de configuración
+│   ├── wellness/         # Historial de bienestar
+│   └── ui/               # Componentes Shadcn/UI
+├── contexts/
+│   └── AuthContext.tsx   # Autenticación y sesión
+├── hooks/
+│   ├── useGlucoseLog.ts      # CRUD glucosa
+│   ├── useInsulinSchedule.ts # CRUD insulina
+│   ├── useWellnessLog.ts     # CRUD bienestar
+│   ├── useXPCalculation.ts   # Sistema XP
+│   └── useAICallSchedule.ts  # Alertas automáticas
 ├── pages/
-│   ├── Index.tsx                  # Landing page con selección de rol
-│   └── Dashboard.tsx              # Dashboard principal
+│   ├── medico/           # Páginas del rol médico
+│   ├── Index.tsx         # Landing page
+│   ├── Auth.tsx          # Login/Registro
+│   ├── Dashboard.tsx     # Dashboard principal
+│   ├── Glucometrias.tsx  # Tracking de glucosa
+│   ├── Insulina.tsx      # Gestión de insulina
+│   ├── Alertas.tsx       # Alertas automáticas
+│   └── Configuracion.tsx # Configuración
 ├── types/
-│   └── diabetes.ts                # Tipos TypeScript
-└── index.css                      # Sistema de diseño (tokens)
+│   ├── diabetes.ts       # Tipos del dominio
+│   └── auth.ts           # Tipos de autenticación
+└── lib/
+    ├── constants.ts      # Design tokens
+    ├── navigation.ts     # Navegación condicional
+    ├── xpSystem.ts       # Lógica XP
+    └── utils.ts          # Utilidades
 ```
+
+## 🗄️ Base de Datos
+
+### Tablas Principales
+
+| Tabla | Descripción |
+|-------|-------------|
+| `profiles` | Datos básicos de usuario |
+| `user_roles` | Roles (patient, coadmin, doctor) |
+| `patient_profiles` | Perfil médico del paciente |
+| `coadmin_profiles` | Vinculación coadmin-paciente |
+| `glucose_records` | Mediciones de glucosa |
+| `insulin_schedules` | Historial de insulina |
+| `sleep_records` | Registros de sueño |
+| `stress_records` | Registros de estrés |
+| `dizziness_records` | Registros de mareos |
+| `notification_preferences` | Preferencias de notificaciones |
+| `ai_call_schedules` | Alertas automáticas |
+
+### Funciones
+
+- `has_role(user_id, role)` - Verificar rol de usuario
+- `is_authorized_coadmin_email(email)` - Validar email de coadmin
+- `handle_new_user()` - Trigger post-registro
+
+## 👥 Roles de Usuario
+
+| Rol | Permisos | Vista Principal |
+|-----|----------|-----------------|
+| **Paciente** | CRUD sobre sus datos, configura coadmin | Dashboard personal |
+| **Co-administrador** | Lectura + escritura de insulina del paciente asignado | Vista espejo del paciente |
+| **Médico** | Lectura de pacientes asignados, crear alertas/reportes | CRM con lista de pacientes |
 
 ## 🎨 Sistema de Diseño
 
-Los tokens de diseño están definidos en `src/index.css`:
+### Principios (Apple HIG)
+- Claridad, Deferencia, Profundidad
+- Touch targets mínimo 44px
+- Feedback inmediato (toasts)
+- Contraste WCAG AA
 
-### Colores Principales
+### Paleta de Colores (Tema Oscuro)
 ```css
---purple-500: #B46BFF;
---purple-400: #D08BFF;
---purple-600: #8A32FF;
---bg-dark-900: #0D021F;
---bg-dark-800: #1A0332;
-```
-
-### Efectos
-```css
---shadow-glow: 0 8px 30px rgba(180,107,255,0.14);
---radius-lg: 24px;
+--purple-500: #B46BFF;  /* Acento principal */
+--purple-400: #D08BFF;  /* Hover */
+--purple-600: #8A32FF;  /* Active */
+--bg-dark-900: #0D021F; /* Fondo principal */
+--bg-dark-800: #1A0332; /* Fondo secundario */
 ```
 
 ### Clases Utilitarias
@@ -68,64 +163,38 @@ Los tokens de diseño están definidos en `src/index.css`:
 - `.glow-text` - Texto con sombra neón
 - `.btn-neon` - Botón con estilo neón
 
-## 👥 Roles de Usuario
-
-| Rol | Descripción | Vista Principal |
-|-----|-------------|-----------------|
-| **Paciente** | Registra y visualiza sus datos | Dashboard personal con tracking |
-| **Co-administrador** | Acompaña a un paciente | Vista espejo del paciente |
-| **Médico** | Gestiona múltiples pacientes | CRM con priorización IA |
-
-## 📊 Datos Mock
-
-El archivo `src/data/mockPatients.json` contiene:
-- 5 pacientes con diferentes perfiles
-- Glucometrías, insulina, sueño y estrés
-- Alertas de ejemplo (críticas y warnings)
-- 4 coadministradores
-- 2 médicos
-- Reportes de IA de ejemplo
-
-## 🔐 Seguridad (Documentación)
-
-Ver `src/docs/RLS_POLICIES.md` para el borrador de políticas RLS:
-- Pacientes: CRUD sobre sus propios datos
-- Coadmins: Solo lectura (no pueden eliminar)
-- Médicos: Lectura + creación de alertas/reportes
-
-## 🤖 Shaun Murphy IA
-
-Ver `src/docs/SHAUN_MURPHY_IA_SPEC.md` para:
-- Especificación de inputs/outputs
-- Tipos de alertas generadas
-- Flujos de procesamiento
-- Integración con Telegram
-
 ## 📱 Responsivo
 
-La aplicación está diseñada mobile-first:
-- **Mobile** (< 640px): Sidebar como drawer
-- **Tablet** (768px+): Layout adaptativo
-- **Desktop** (1024px+): Sidebar fijo, grid de 3 columnas
+- **Mobile** (< 768px): Bottom navigation bar (5 items)
+- **Desktop** (≥ 768px): Top navigation bar
 
 ## 🛠️ Tecnologías
 
-- **Framework**: React 18 + TypeScript
-- **Estilos**: Tailwind CSS + tokens personalizados
-- **Componentes**: Shadcn/UI
+- **Framework**: React 18 + TypeScript + Vite
+- **Estilos**: Tailwind CSS + Shadcn/UI
+- **Backend**: Lovable Cloud (Supabase)
+- **Estado**: TanStack React Query
+- **Validación**: Zod + React Hook Form
 - **Gráficos**: Recharts
-- **Routing**: React Router DOM
-- **Estado**: TanStack Query (preparado)
+- **Routing**: React Router DOM v6
 
-## 📋 Próximos Pasos
+## 📋 Roadmap
 
-1. ⬜ Conectar Lovable Cloud (Supabase)
-2. ⬜ Implementar autenticación
-3. ⬜ Ejecutar migraciones SQL
-4. ⬜ Configurar bot de Telegram
-5. ⬜ Integrar Shaun Murphy IA con Lovable AI
+- [ ] Integración ElevenLabs para llamadas de voz IA
+- [ ] Integración WhatsApp Business API
+- [ ] CRM completo para médicos
+- [ ] Sincronización con glucómetros Bluetooth
+- [ ] PWA con notificaciones push
+- [ ] Exportación de datos (PDF, CSV)
+
+## 📖 Documentación Adicional
+
+- `llms.txt` - Contexto completo para LLMs
+- `src/docs/ER_DIAGRAM.md` - Diagrama Entidad-Relación
+- `src/docs/RLS_POLICIES.md` - Políticas de seguridad RLS
 
 ---
 
-**Versión**: 1.0.0-beta  
-**Licencia**: Privada
+**Versión**: 2.0.0  
+**Licencia**: Privada  
+**Año**: 2025
