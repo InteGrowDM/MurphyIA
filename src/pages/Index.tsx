@@ -60,14 +60,14 @@ const Index = () => {
             </button>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={handleLogin} className="hidden sm:inline-flex">
-              Iniciar Sesión
-            </Button>
-            <Button onClick={() => scrollToSection('contacto')} className="btn-neon">
-              Agendar Demo
-            </Button>
-          </div>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" onClick={handleLogin} className="hidden sm:inline-flex">
+            Iniciar Sesión
+          </Button>
+          <Button onClick={() => navigate('/auth?mode=register')} className="btn-neon">
+            Registrarse
+          </Button>
+        </div>
         </div>
       </header>
 
