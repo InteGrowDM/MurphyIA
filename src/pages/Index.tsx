@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Activity, Phone, MessageCircle, Send, Monitor, 
   FileText, Clock, AlertTriangle, Check, Heart, 
-  TrendingUp, Users, Building2, ArrowRight
+  TrendingUp, Users, Building2, ArrowRight,
+  Zap, Shield, LogIn, UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -70,6 +71,50 @@ const Index = () => {
         </div>
         </div>
       </header>
+
+      {/* Hero Auth Section */}
+      <section className="min-h-screen flex items-center justify-center px-4 pt-20">
+        <div className="text-center max-w-3xl mx-auto animate-fade-up">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            Tu salud, <span className="text-primary">bajo control</span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Plataforma inteligente para el seguimiento de diabetes con integración WhatsApp y análisis personalizado.
+          </p>
+          
+          <div className="flex items-center justify-center gap-4 mb-10">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm">
+              <Zap className="h-4 w-4 text-primary" />
+              Tiempo real
+            </span>
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm">
+              <Shield className="h-4 w-4 text-primary" />
+              Datos seguros
+            </span>
+          </div>
+          
+          <div className="flex items-center justify-center gap-4">
+            <Button 
+              onClick={handleLogin}
+              variant="outline" 
+              size="lg"
+              className="min-w-[160px]"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Iniciar Sesión
+            </Button>
+            <Button 
+              onClick={() => navigate('/auth?mode=register')}
+              size="lg"
+              className="btn-neon min-w-[160px]"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Registrarte
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Section 1: Video - Somos Murphy */}
       <section className="pt-32 pb-20 px-4">
