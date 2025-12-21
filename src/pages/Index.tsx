@@ -137,7 +137,7 @@ const Index = () => {
           <div className="glass-card p-2 rounded-2xl mb-12 animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <div className="aspect-video rounded-xl overflow-hidden">
               <iframe
-                src="https://youtu.be/gZUBpbIfQrI?si=8-XsscMjGoLVb7Iz"
+                src="https://www.youtube.com/embed/gZUBpbIfQrI"
                 title="Murphy - Somos Murphy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -247,7 +247,7 @@ const Index = () => {
             <TabsContent value="pacientes" className="glass-card p-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <BenefitItem icon={<Heart />} title="Acompañamiento continuo" description="Nunca más sentirse solo frente a la enfermedad" />
-                <BenefitItem icon={<TrendingUp />} title="Educación personalizada" description="Murphy es un copliloto en la educación y motivación del paciente y su coadministradores />
+                <BenefitItem icon={<TrendingUp />} title="Educación personalizada" description="Murphy es un copiloto en la educación y motivación del paciente y sus coadministradores" />
                 <BenefitItem icon={<AlertTriangle />} title="Alertas tempranas" description="Detección proactiva de situaciones de riesgo" />
                 <BenefitItem icon={<Check />} title="Sin complicaciones técnicas" description="Usa los canales que ya conoces y confías" />
               </div>
