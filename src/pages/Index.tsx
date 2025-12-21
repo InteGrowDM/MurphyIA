@@ -80,7 +80,7 @@ const Index = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Plataforma inteligente para el seguimiento de diabetes con integración WhatsApp y análisis personalizado.
+            Sistema integrado con IA que permita el seguimiento de las glucometrias y mejora la vida de los pacientes con diabetes.
           </p>
           
           <div className="flex items-center justify-center gap-4 mb-10">
@@ -121,15 +121,15 @@ const Index = () => {
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12 animate-fade-up">
             <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              IA que acompaña la diabetes día a día
+              Murphy acompaña la diabetes día a día
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Transforma el seguimiento en{" "}
-              <span className="text-primary">acompañamiento real</span>
+              Murphy es más que tecnología{" "}
+              <span className="text-primary">Es acompañamiento que salva vidas</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Murphy conecta a pacientes con diabetes y sus médicos a través de IA conversacional, 
-              convirtiendo cada lectura de glucosa en datos clínicos accionables.
+              convirtiendo cada lectura de glucosa, insulina y bienestar en datos clínicos accionables.
             </p>
           </div>
 
@@ -153,8 +153,8 @@ const Index = () => {
               <div className="text-muted-foreground">Personas con diabetes en Colombia</div>
             </div>
             <div className="glass-card p-6 text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">&lt;50%</div>
-              <div className="text-muted-foreground">Logra control estable de glucosa</div>
+              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">Pacientes</div>
+              <div className="text-muted-foreground">Control estable de glucosa</div>
             </div>
             <div className="glass-card p-6 text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">24/7</div>
@@ -173,14 +173,14 @@ const Index = () => {
               <div>
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider">El problema real</span>
                 <h2 className="text-3xl md:text-4xl font-bold mt-2">
-                  El seguimiento no debería depender de libretas
+                  El seguimiento de las glucometrias no debería depender de cuadernos.
                 </h2>
               </div>
 
               <div className="glass-card p-6">
                 <p className="text-muted-foreground italic mb-4">
-                  "Esta idea nació viendo a mi abuela luchar cada día con su diabetes avanzada: 
-                  anotando glucometrías en papeles, olvidando lecturas, y esperando semanas 
+                  "Esta idea nació por experiencia de uno de los cofundadores el cual observo a su abuela luchar cada día con su diabetes avanzada: 
+                  anotando glucometrías en cuadernos, olvidando lecturas, y esperando semanas 
                   para que su médico entendiera lo que pasaba."
                 </p>
                 <p className="text-primary font-medium">
@@ -205,9 +205,9 @@ const Index = () => {
               </div>
 
               <div className="space-y-4">
-                <StepCard number={1} title="Registro Natural" description="Registra tu glucometría por WhatsApp, llamada telefónica o dashboard web" />
+                <StepCard number={1} title="Registro Natural" description="Registra tu glucometría, insulina, estres, horas de sueño y mareos por WhatsApp, llamada telefónica o dashboard web" />
                 <StepCard number={2} title="Análisis Inteligente" description="Murphy analiza patrones, identifica riesgos y genera insights clínicos automáticamente" />
-                <StepCard number={3} title="Integración Médica" description="Reportes automáticos al sistema de la IPS (FHIR/HL7) para decisiones clínicas precisas" />
+                <StepCard number={3} title="Integración Médica" description="Reportes automáticos para los medicos especialista en base a la información diaria del paciente" />
               </div>
 
               <div className="glass-card p-5">
@@ -215,7 +215,6 @@ const Index = () => {
                 <div className="grid grid-cols-4 gap-3">
                   <ChannelCard icon={<Phone />} label="Llamadas" />
                   <ChannelCard icon={<MessageCircle />} label="WhatsApp" />
-                  <ChannelCard icon={<Send />} label="Telegram" />
                   <ChannelCard icon={<Monitor />} label="Dashboard" />
                 </div>
               </div>
@@ -239,16 +238,16 @@ const Index = () => {
                 <Users className="h-4 w-4" />
                 Médicos
               </TabsTrigger>
-              <TabsTrigger value="ips" className="flex items-center gap-2">
+              <TabsTrigger value="clinicas" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                IPS
+                Clinicas
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="pacientes" className="glass-card p-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <BenefitItem icon={<Heart />} title="Acompañamiento continuo" description="Nunca más sentirse solo frente a la enfermedad" />
-                <BenefitItem icon={<TrendingUp />} title="Educación personalizada" description="Murphy educa y motiva según tu contexto" />
+                <BenefitItem icon={<TrendingUp />} title="Educación personalizada" description="Murphy es un copliloto en la educación y motivación del paciente y su coadministradores />
                 <BenefitItem icon={<AlertTriangle />} title="Alertas tempranas" description="Detección proactiva de situaciones de riesgo" />
                 <BenefitItem icon={<Check />} title="Sin complicaciones técnicas" description="Usa los canales que ya conoces y confías" />
               </div>
@@ -258,14 +257,13 @@ const Index = () => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <BenefitItem icon={<TrendingUp />} title="Visibilidad completa" description="Ve la evolución real entre consultas" />
                 <BenefitItem icon={<Activity />} title="Decisiones precisas" description="Datos estructurados y análisis de tendencias" />
-                <BenefitItem icon={<FileText />} title="Integración nativa" description="Datos directos en tu sistema FHIR/HL7" />
                 <BenefitItem icon={<AlertTriangle />} title="Alertas inteligentes" description="Notificaciones solo cuando realmente importa" />
               </div>
             </TabsContent>
 
             <TabsContent value="ips" className="glass-card p-6">
               <div className="grid sm:grid-cols-2 gap-4">
-                <BenefitItem icon={<TrendingUp />} title="Mejores indicadores" description="Control metabólico y adherencia medibles" />
+                <BenefitItem icon={<TrendingUp />} title="Mejores indicadores" description="Información de los pacientes en tiempo real" />
                 <BenefitItem icon={<Activity />} title="Reducción de costos" description="Menos urgencias y hospitalizaciones" />
                 <BenefitItem icon={<FileText />} title="Datos valiosos" description="Métricas clínicas y económicas en tiempo real" />
                 <BenefitItem icon={<Users />} title="Escalabilidad" description="Atiende más pacientes con mejor calidad" />
@@ -281,18 +279,18 @@ const Index = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Murphy es más que tecnología</h2>
           <p className="text-xl text-primary font-medium mb-6">Es acompañamiento que salva vidas</p>
           <p className="text-muted-foreground mb-8">
-            ¿Listo para transformar el seguimiento de diabetes? Buscamos IPS aliadas, inversores y mentores clínicos para escalar este impacto.
+            ¿Listo para transformar el seguimiento de diabetes? Buscamos medicos, clinicas aliadas y mentores clínicos para escalar este impacto.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button asChild size="lg" className="btn-neon">
-              <a href="mailto:contacto@murphy.health">
+              <a href="mailto:shaunmurphyia@gmail.com">
                 Agendar Demo
                 <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="https://wa.me/573001234567" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/573045818587" target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Contactar por WhatsApp
               </a>
@@ -301,9 +299,9 @@ const Index = () => {
 
           <div className="glass-card p-6 inline-block">
             <p className="text-sm text-muted-foreground mb-2">
-              Cofundadores: <span className="text-foreground">Jhonattan Rodríguez, Adriana Gallo & Santiago Botero</span>
+              Cofundadores: <span className="text-foreground">Adriana Gallo, Santiago Botero & Jhonattan Rodríguez</span>
             </p>
-            <p className="text-primary font-medium">Ningún paciente debería sentirse solo frente a su enfermedad</p>
+            <p className="text-primary font-medium">Ningún paciente debería sentirse solo frente a su enfermedad cronica</p>
           </div>
         </div>
       </section>
@@ -315,7 +313,7 @@ const Index = () => {
             <Activity className="h-6 w-6 text-primary" />
             <span className="font-bold text-primary">Murphy</span>
           </div>
-          <p className="text-muted-foreground text-sm">Acompañamiento inteligente para la diabetes</p>
+          <p className="text-muted-foreground text-sm">Acompañamiento integral para e, control de la diabetes en pro de una mejor calidad de vida</p>
           <p className="text-muted-foreground text-sm">© 2025 Murphy Health. Todos los derechos reservados.</p>
         </div>
       </footer>
