@@ -137,7 +137,7 @@ const Index = () => {
           <div className="glass-card p-2 rounded-2xl mb-12 animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <div className="aspect-video rounded-xl overflow-hidden">
               <iframe
-                src="https://www.youtube.com/embed/CW45KAWD1UY"
+                src="https://youtu.be/gZUBpbIfQrI?si=8-XsscMjGoLVb7Iz"
                 title="Murphy - Somos Murphy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
