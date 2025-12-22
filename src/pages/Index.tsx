@@ -1,19 +1,39 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getHomeRoute } from '@/lib/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Activity, Phone, MessageCircle, Send, Monitor, 
+  Activity, Phone, MessageCircle, Monitor, 
   FileText, Clock, AlertTriangle, Check, Heart, 
   TrendingUp, Users, Building2, ArrowRight,
-  Zap, Shield, LogIn, UserPlus
+  Zap, Shield, LogIn, Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
   const { session, userRole, isLoading } = useAuth();
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    tipoUsuario: '',
+    celular: '',
+    email: '',
+    fechaContacto: '',
+    horaContacto: ''
+  });
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   useEffect(() => {
     if (!isLoading && session && userRole) {
@@ -23,6 +43,16 @@ const Index = () => {
   }, [session, userRole, isLoading, navigate]);
 
   const handleLogin = () => navigate('/auth?mode=login');
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.nombre || !formData.tipoUsuario || !formData.celular || !formData.email) {
+      toast.error('Por favor completa todos los campos requeridos');
+      return;
+    }
+    setFormSubmitted(true);
+    toast.success('¡Solicitud enviada! Te contactaremos pronto.');
+  };
 
   if (isLoading) {
     return (
@@ -65,8 +95,8 @@ const Index = () => {
           <Button variant="ghost" onClick={handleLogin} className="hidden sm:inline-flex">
             Iniciar Sesión
           </Button>
-          <Button onClick={() => navigate('/auth?mode=register')} className="btn-neon">
-            Registrarse
+          <Button onClick={() => scrollToSection('contacto')} className="btn-neon">
+            Agendar Demo
           </Button>
         </div>
         </div>
@@ -80,7 +110,7 @@ const Index = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Sistema integrado con IA que permita el seguimiento de las glucometrias y mejora la vida de los pacientes con diabetes.
+            Sistema integrado con IA que permite el seguimiento de las glucometrías y mejora la vida de los pacientes con diabetes.
           </p>
           
           <div className="flex items-center justify-center gap-4 mb-10">
@@ -105,12 +135,12 @@ const Index = () => {
               Iniciar Sesión
             </Button>
             <Button 
-              onClick={() => navigate('/auth?mode=register')}
+              onClick={() => scrollToSection('contacto')}
               size="lg"
               className="btn-neon min-w-[160px]"
             >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Registrarte
+              <Calendar className="mr-2 h-4 w-4" />
+              Agendar Demo
             </Button>
           </div>
         </div>
@@ -173,13 +203,13 @@ const Index = () => {
               <div>
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider">El problema real</span>
                 <h2 className="text-3xl md:text-4xl font-bold mt-2">
-                  El seguimiento de las glucometrias no debería depender de cuadernos.
+                  El seguimiento de las glucometrías no debería depender de cuadernos.
                 </h2>
               </div>
 
               <div className="glass-card p-6">
                 <p className="text-muted-foreground italic mb-4">
-                  "Esta idea nació por experiencia de uno de los cofundadores el cual observo a su abuela luchar cada día con su diabetes avanzada: 
+                  "Esta idea nació por experiencia de uno de los cofundadores, quien observó a su abuela luchar cada día con su diabetes avanzada: 
                   anotando glucometrías en cuadernos, olvidando lecturas, y esperando semanas 
                   para que su médico entendiera lo que pasaba."
                 </p>
@@ -205,14 +235,14 @@ const Index = () => {
               </div>
 
               <div className="space-y-4">
-                <StepCard number={1} title="Registro Natural" description="Registra tu glucometría, insulina, estres, horas de sueño y mareos por WhatsApp, llamada telefónica o dashboard web" />
+                <StepCard number={1} title="Registro Natural" description="Registra tu glucometría, insulina, estrés, horas de sueño y mareos por WhatsApp, llamada telefónica o dashboard web" />
                 <StepCard number={2} title="Análisis Inteligente" description="Murphy analiza patrones, identifica riesgos y genera insights clínicos automáticamente" />
-                <StepCard number={3} title="Integración Médica" description="Reportes automáticos para los medicos especialista en base a la información diaria del paciente" />
+                <StepCard number={3} title="Integración Médica" description="Reportes automáticos para los médicos especialistas en base a la información diaria del paciente" />
               </div>
 
               <div className="glass-card p-5">
                 <p className="text-sm font-medium mb-3">Múltiples canales, cero fricción</p>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <ChannelCard icon={<Phone />} label="Llamadas" />
                   <ChannelCard icon={<MessageCircle />} label="WhatsApp" />
                   <ChannelCard icon={<Monitor />} label="Dashboard" />
@@ -240,7 +270,7 @@ const Index = () => {
               </TabsTrigger>
               <TabsTrigger value="clinicas" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Clinicas
+                Clínicas
               </TabsTrigger>
             </TabsList>
 
@@ -261,7 +291,7 @@ const Index = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="ips" className="glass-card p-6">
+            <TabsContent value="clinicas" className="glass-card p-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <BenefitItem icon={<TrendingUp />} title="Mejores indicadores" description="Información de los pacientes en tiempo real" />
                 <BenefitItem icon={<Activity />} title="Reducción de costos" description="Menos urgencias y hospitalizaciones" />
@@ -275,33 +305,119 @@ const Index = () => {
 
       {/* Section 4: Agendar Demo */}
       <section id="contacto" className="py-20 px-4 bg-gradient-to-br from-primary/20 via-primary/10 to-background">
-        <div className="container mx-auto max-w-3xl text-center animate-fade-up">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Murphy es más que tecnología</h2>
-          <p className="text-xl text-primary font-medium mb-6">Es acompañamiento que salva vidas</p>
-          <p className="text-muted-foreground mb-8">
-            ¿Listo para transformar el seguimiento de diabetes? Buscamos medicos, clinicas aliadas y mentores clínicos para escalar este impacto.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button asChild size="lg" className="btn-neon">
-              <a href="mailto:shaunmurphyia@gmail.com">
-                Agendar Demo
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <a href="https://wa.me/573045818587" target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Contactar por WhatsApp
-              </a>
-            </Button>
+        <div className="container mx-auto max-w-2xl animate-fade-up">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Agendar Demo</h2>
+            <p className="text-muted-foreground">
+              Déjanos tus datos y te contactaremos para mostrarte cómo Murphy puede transformar el seguimiento de diabetes.
+            </p>
           </div>
 
-          <div className="glass-card p-6 inline-block">
+          {!formSubmitted ? (
+            <form onSubmit={handleFormSubmit} className="glass-card p-6 space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre completo *</Label>
+                <Input
+                  id="nombre"
+                  placeholder="Tu nombre completo"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tipoUsuario">Tipo de usuario *</Label>
+                <Select
+                  value={formData.tipoUsuario}
+                  onValueChange={(value) => setFormData({ ...formData, tipoUsuario: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona tu rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paciente">Paciente</SelectItem>
+                    <SelectItem value="coadministrador">Coadministrador</SelectItem>
+                    <SelectItem value="medico">Médico</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="celular">Número de celular *</Label>
+                <Input
+                  id="celular"
+                  type="tel"
+                  placeholder="+57 300 123 4567"
+                  value={formData.celular}
+                  onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo electrónico *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@correo.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fechaContacto">Día de contacto</Label>
+                  <Input
+                    id="fechaContacto"
+                    type="date"
+                    value={formData.fechaContacto}
+                    onChange={(e) => setFormData({ ...formData, fechaContacto: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="horaContacto">Hora de contacto</Label>
+                  <Input
+                    id="horaContacto"
+                    type="time"
+                    value={formData.horaContacto}
+                    onChange={(e) => setFormData({ ...formData, horaContacto: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" size="lg" className="btn-neon w-full">
+                <Calendar className="mr-2 h-4 w-4" />
+                Enviar solicitud
+              </Button>
+            </form>
+          ) : (
+            <div className="glass-card p-8 text-center space-y-6">
+              <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                <Check className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">¡Gracias por tu interés!</h3>
+                <p className="text-muted-foreground">
+                  Hemos recibido tu solicitud. Te contactaremos pronto para agendar tu demo.
+                </p>
+              </div>
+              <Button asChild size="lg" className="btn-neon">
+                <a href="https://wa.me/573045818587" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Contactar por WhatsApp
+                </a>
+              </Button>
+            </div>
+          )}
+
+          <div className="glass-card p-6 mt-8 text-center">
             <p className="text-sm text-muted-foreground mb-2">
               Cofundadores: <span className="text-foreground">Adriana Gallo, Santiago Botero & Jhonattan Rodríguez</span>
             </p>
-            <p className="text-primary font-medium">Ningún paciente debería sentirse solo frente a su enfermedad cronica</p>
+            <p className="text-primary font-medium">Ningún paciente debería sentirse solo frente a su enfermedad crónica</p>
           </div>
         </div>
       </section>
@@ -313,7 +429,7 @@ const Index = () => {
             <Activity className="h-6 w-6 text-primary" />
             <span className="font-bold text-primary">Murphy</span>
           </div>
-          <p className="text-muted-foreground text-sm">Acompañamiento integral para e, control de la diabetes en pro de una mejor calidad de vida</p>
+          <p className="text-muted-foreground text-sm">Acompañamiento integral para el control de la diabetes en pro de una mejor calidad de vida</p>
           <p className="text-muted-foreground text-sm">© 2025 Murphy Health. Todos los derechos reservados.</p>
         </div>
       </footer>
