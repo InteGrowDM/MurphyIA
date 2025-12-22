@@ -155,15 +155,9 @@ const Index = () => {
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Murphy es más que tecnología{" "}
-              <span className="text-primary">Es acompañamiento que salva vidas</span>
+              <span className="text-primary">es acompañamiento que salva vidas</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Murphy conecta a pacientes con diabetes y sus médicos a través de IA conversacional, 
-              convirtiendo cada lectura de glucosa, insulina y bienestar en datos clínicos accionables.
-            </p>
-          </div>
-
-          {/* Video Embed */}
+            {/* Video Embed */}
           <div className="glass-card p-2 rounded-2xl mb-12 animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <div className="aspect-video rounded-xl overflow-hidden">
               <iframe
@@ -174,6 +168,11 @@ const Index = () => {
                 className="w-full h-full"
               />
             </div>
+          </div>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Murphy conecta a pacientes con diabetes y sus médicos a través de IA conversacional, 
+              convirtiendo cada lectura de glucosa, insulina y bienestar en datos clínicos accionables.
+            </p>
           </div>
 
           {/* Stats */}
