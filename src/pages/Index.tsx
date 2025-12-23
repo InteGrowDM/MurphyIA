@@ -7,7 +7,7 @@ import {
   Activity, Phone, MessageCircle, Monitor, 
   FileText, Clock, AlertTriangle, Check, Heart, 
   TrendingUp, Users, Building2, ArrowRight,
-  Zap, Shield, LogIn, Calendar as CalendarIcon
+  Zap, Shield, LogIn, Calendar as CalendarIcon, Award
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -291,6 +291,7 @@ const Index = () => {
                 <BenefitItem icon={<TrendingUp />} title="Visibilidad completa" description="Ve la evolución real entre consultas" />
                 <BenefitItem icon={<Activity />} title="Decisiones precisas" description="Datos estructurados y análisis de tendencias" />
                 <BenefitItem icon={<AlertTriangle />} title="Alertas inteligentes" description="Notificaciones solo cuando realmente importa" />
+                <BenefitItem icon={<Award />} title="Profesionalismo" description="Refleje su inversión en tecnología de vanguardia" />
               </div>
             </TabsContent>
 
@@ -391,7 +392,7 @@ const Index = () => {
                         selected={formData.fechaContacto ? new Date(formData.fechaContacto) : undefined}
                         onSelect={(date) => setFormData({ 
                           ...formData, 
-                          fechaContacto: date?.toISOString().split('T')[0] || '' 
+                          fechaContacto: date ? format(date, 'yyyy-MM-dd') : '' 
                         })}
                         disabled={(date) => date < new Date()}
                         className="pointer-events-auto"
