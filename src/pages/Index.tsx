@@ -7,8 +7,12 @@ import {
   Activity, Phone, MessageCircle, Monitor, 
   FileText, Clock, AlertTriangle, Check, Heart, 
   TrendingUp, Users, Building2, ArrowRight,
-  Zap, Shield, LogIn, Calendar
+  Zap, Shield, LogIn, Calendar as CalendarIcon
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,12 +128,12 @@ const Index = () => {
             </span>
           </div>
           
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button 
               onClick={handleLogin}
               variant="outline" 
               size="lg"
-              className="min-w-[160px]"
+              className="w-full sm:w-auto min-w-[160px]"
             >
               <LogIn className="mr-2 h-4 w-4" />
               Iniciar Sesión
@@ -137,9 +141,9 @@ const Index = () => {
             <Button 
               onClick={() => scrollToSection('contacto')}
               size="lg"
-              className="btn-neon min-w-[160px]"
+              className="btn-neon w-full sm:w-auto min-w-[160px]"
             >
-              <Calendar className="mr-2 h-4 w-4" />
+              <CalendarIcon className="mr-2 h-4 w-4" />
               Agendar Demo
             </Button>
           </div>
@@ -366,29 +370,61 @@ const Index = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fechaContacto">Día de contacto</Label>
-                  <Input
-                    id="fechaContacto"
-                    type="date"
-                    value={formData.fechaContacto}
-                    onChange={(e) => setFormData({ ...formData, fechaContacto: e.target.value })}
-                  />
+                  <Label>Día de contacto</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.fechaContacto 
+                          ? format(new Date(formData.fechaContacto), "PPP", { locale: es }) 
+                          : "Selecciona un día"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.fechaContacto ? new Date(formData.fechaContacto) : undefined}
+                        onSelect={(date) => setFormData({ 
+                          ...formData, 
+                          fechaContacto: date?.toISOString().split('T')[0] || '' 
+                        })}
+                        disabled={(date) => date < new Date()}
+                        className="pointer-events-auto"
+                        locale={es}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="horaContacto">Hora de contacto</Label>
-                  <Input
-                    id="horaContacto"
-                    type="time"
+                  <Label>Hora de contacto</Label>
+                  <Select
                     value={formData.horaContacto}
-                    onChange={(e) => setFormData({ ...formData, horaContacto: e.target.value })}
-                  />
+                    onValueChange={(value) => setFormData({ ...formData, horaContacto: value })}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona una hora" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="09:00">9:00 AM</SelectItem>
+                      <SelectItem value="10:00">10:00 AM</SelectItem>
+                      <SelectItem value="11:00">11:00 AM</SelectItem>
+                      <SelectItem value="12:00">12:00 PM</SelectItem>
+                      <SelectItem value="14:00">2:00 PM</SelectItem>
+                      <SelectItem value="15:00">3:00 PM</SelectItem>
+                      <SelectItem value="16:00">4:00 PM</SelectItem>
+                      <SelectItem value="17:00">5:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <Button type="submit" size="lg" className="btn-neon w-full">
-                <Calendar className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-4 w-4" />
                 Enviar solicitud
               </Button>
             </form>
