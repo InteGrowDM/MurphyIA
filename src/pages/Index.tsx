@@ -449,12 +449,6 @@ const Index = () => {
             </div>
           )}
 
-          <div className="glass-card p-6 mt-8 text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              Cofundadores: <span className="text-foreground">Adriana Gallo, Santiago Botero & Jhonattan Rodríguez</span>
-            </p>
-            <p className="text-primary font-medium">Ningún paciente debería sentirse solo frente a su enfermedad crónica</p>
-          </div>
         </div>
       </section>
 
