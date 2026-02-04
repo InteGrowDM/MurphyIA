@@ -5,9 +5,11 @@ import {
   Calendar,
   ChevronRight,
   History,
+  HeartPulse,
   type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { WellnessHistoryType } from '@/components/wellness/WellnessHistorySheet';
 
 interface WellnessItem {
   id: string;
@@ -24,10 +26,12 @@ interface HabitTrackerCardProps {
   sleepData?: { hours: number; quality: number } | null;
   stressData?: { level: number } | null;
   dizzinessData?: { severity: number; count: number } | null;
+  bloodPressureData?: { systolic: number; diastolic: number } | null;
   onSleepClick: () => void;
   onStressClick: () => void;
   onDizzinessClick: () => void;
-  onViewHistory?: (type: 'sleep' | 'stress' | 'dizziness') => void;
+  onBloodPressureClick: () => void;
+  onViewHistory?: (type: WellnessHistoryType) => void;
 }
 
 const STRESS_LABELS = ['Muy relajado', 'Relajado', 'Normal', 'Algo tenso', 'Tenso', 'Estresado', 'Muy estresado', 'Agotado', 'Crítico', 'Emergencia'];
@@ -37,9 +41,11 @@ export function HabitTrackerCard({
   sleepData,
   stressData,
   dizzinessData,
+  bloodPressureData,
   onSleepClick,
   onStressClick,
   onDizzinessClick,
+  onBloodPressureClick,
   onViewHistory
 }: HabitTrackerCardProps) {
   
@@ -47,16 +53,16 @@ export function HabitTrackerCard({
   const wellnessItems: WellnessItem[] = [
     { 
       id: 'sleep', 
-      label: 'Registro de sueño', 
+      label: 'Sueño', 
       icon: Moon, 
       color: 'text-indigo-400',
       bgColor: 'bg-indigo-500/20',
-      value: sleepData ? `${sleepData.hours}h · Calidad ${sleepData.quality}/10` : undefined,
+      value: sleepData ? `${sleepData.hours}h · ${sleepData.quality}/10` : undefined,
       status: sleepData ? 'recorded' : 'pending'
     },
     { 
       id: 'stress', 
-      label: 'Nivel de estrés', 
+      label: 'Estrés', 
       icon: Brain, 
       color: 'text-rose-400',
       bgColor: 'bg-rose-500/20',
@@ -65,12 +71,21 @@ export function HabitTrackerCard({
     },
     { 
       id: 'dizziness', 
-      label: 'Registro de mareos', 
+      label: 'Mareos', 
       icon: Sparkles, 
       color: 'text-pink-400',
       bgColor: 'bg-pink-500/20',
       value: dizzinessData ? `${dizzinessData.count} episodio(s)` : undefined,
       status: dizzinessData ? 'recorded' : 'pending'
+    },
+    { 
+      id: 'blood_pressure', 
+      label: 'Tensión', 
+      icon: HeartPulse, 
+      color: 'text-red-400',
+      bgColor: 'bg-red-500/20',
+      value: bloodPressureData ? `${bloodPressureData.systolic}/${bloodPressureData.diastolic} mmHg` : undefined,
+      status: bloodPressureData ? 'recorded' : 'pending'
     },
   ];
 
@@ -86,6 +101,9 @@ export function HabitTrackerCard({
         break;
       case 'dizziness':
         onDizzinessClick();
+        break;
+      case 'blood_pressure':
+        onBloodPressureClick();
         break;
     }
   };
@@ -127,9 +145,9 @@ export function HabitTrackerCard({
         </div>
       </div>
 
-      {/* Wellness Items Grid - Responsive */}
+      {/* Wellness Items Grid - Responsive 4 columns */}
       <div 
-        className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3" 
+        className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3" 
         role="list" 
         aria-label="Lista de bienestar"
       >
@@ -184,7 +202,7 @@ export function HabitTrackerCard({
                 {onViewHistory && (
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); onViewHistory(item.id as 'sleep' | 'stress' | 'dizziness'); }}
+                    onClick={(e) => { e.stopPropagation(); onViewHistory(item.id as WellnessHistoryType); }}
                     className="p-2 rounded-hig hover:bg-secondary/60 focus-ring"
                     aria-label={`Ver historial de ${item.label}`}
                   >

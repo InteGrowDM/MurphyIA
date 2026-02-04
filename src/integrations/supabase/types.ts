@@ -73,6 +73,53 @@ export type Database = {
           },
         ]
       }
+      blood_pressure_records: {
+        Row: {
+          arm: string | null
+          created_at: string | null
+          diastolic: number
+          id: string
+          notes: string | null
+          patient_id: string
+          position: string | null
+          pulse: number | null
+          recorded_at: string
+          systolic: number
+        }
+        Insert: {
+          arm?: string | null
+          created_at?: string | null
+          diastolic: number
+          id?: string
+          notes?: string | null
+          patient_id: string
+          position?: string | null
+          pulse?: number | null
+          recorded_at?: string
+          systolic: number
+        }
+        Update: {
+          arm?: string | null
+          created_at?: string | null
+          diastolic?: number
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          position?: string | null
+          pulse?: number | null
+          recorded_at?: string
+          systolic?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_pressure_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coadmin_profiles: {
         Row: {
           created_at: string | null

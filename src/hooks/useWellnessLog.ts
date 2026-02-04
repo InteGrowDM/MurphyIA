@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, endOfDay, subDays } from 'date-fns';
-import { DizzinessSymptom } from '@/types/diabetes';
+import { DizzinessSymptom, BloodPressurePosition, BloodPressureArm } from '@/types/diabetes';
 
 interface SleepData {
   hours: number;
@@ -23,6 +23,21 @@ interface DizzinessData {
 interface TodayDizzinessData {
   severity: number;
   count: number;
+}
+
+interface BloodPressureData {
+  systolic: number;
+  diastolic: number;
+  pulse?: number;
+  position?: BloodPressurePosition;
+  arm?: BloodPressureArm;
+  notes?: string;
+}
+
+interface TodayBloodPressureData {
+  systolic: number;
+  diastolic: number;
+  pulse?: number;
 }
 
 export function useWellnessLog(patientId?: string) {
@@ -143,6 +158,48 @@ export function useWellnessLog(patientId?: string) {
     enabled: !!patientId,
   });
 
+  // Fetch today's blood pressure records
+  const { data: todayBloodPressure, isLoading: bloodPressureLoading } = useQuery({
+    queryKey: ['blood-pressure', patientId, today.toDateString()],
+    queryFn: async () => {
+      if (!patientId) return null;
+      
+      const { data, error } = await supabase
+        .from('blood_pressure_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .gte('recorded_at', startOfDay(today).toISOString())
+        .lte('recorded_at', endOfDay(today).toISOString())
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data ? { 
+        systolic: data.systolic, 
+        diastolic: data.diastolic,
+        pulse: data.pulse ?? undefined
+      } as TodayBloodPressureData : null;
+    },
+    enabled: !!patientId,
+  });
+
+  // Blood pressure 30-day history
+  const { data: bloodPressureHistory = [] } = useQuery({
+    queryKey: ['blood-pressure-history', patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      const { data } = await supabase
+        .from('blood_pressure_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .gte('recorded_at', subDays(today, 30).toISOString())
+        .order('recorded_at', { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!patientId,
+  });
+
   // Save sleep mutation
   const saveSleepMutation = useMutation({
     mutationFn: async (sleepData: SleepData) => {
@@ -215,16 +272,47 @@ export function useWellnessLog(patientId?: string) {
     },
   });
 
+  // Save blood pressure mutation
+  const saveBloodPressureMutation = useMutation({
+    mutationFn: async (bpData: BloodPressureData) => {
+      if (!patientId) throw new Error('No patient ID');
+      
+      const { data, error } = await supabase
+        .from('blood_pressure_records')
+        .insert({
+          patient_id: patientId,
+          systolic: bpData.systolic,
+          diastolic: bpData.diastolic,
+          pulse: bpData.pulse,
+          position: bpData.position,
+          arm: bpData.arm,
+          notes: bpData.notes,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blood-pressure', patientId] });
+      queryClient.invalidateQueries({ queryKey: ['blood-pressure-history', patientId] });
+    },
+  });
+
   return {
     todaySleep: todaySleep ?? null,
     todayStress: todayStress ?? null,
     todayDizziness: todayDizziness ?? null,
+    todayBloodPressure: todayBloodPressure ?? null,
     saveSleep: saveSleepMutation.mutate,
     saveStress: saveStressMutation.mutate,
     saveDizziness: saveDizzinessMutation.mutate,
-    isLoading: sleepLoading || stressLoading || dizzinessLoading,
+    saveBloodPressure: saveBloodPressureMutation.mutate,
+    isLoading: sleepLoading || stressLoading || dizzinessLoading || bloodPressureLoading,
     sleepHistory,
     stressHistory,
     dizzinessHistory,
+    bloodPressureHistory,
   };
 }
