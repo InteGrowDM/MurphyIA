@@ -3,7 +3,6 @@ import {
   Brain,
   Sparkles,
   Calendar,
-  ChevronRight,
   History,
   HeartPulse,
   type LucideIcon
@@ -151,7 +150,7 @@ export function HabitTrackerCard({
         role="list" 
         aria-label="Lista de bienestar"
       >
-        {wellnessItems.map((item, index) => {
+      {wellnessItems.map((item, index) => {
           const Icon = item.icon;
           return (
             <button
@@ -160,7 +159,7 @@ export function HabitTrackerCard({
               role="listitem"
               onClick={() => handleItemClick(item.id)}
               className={cn(
-                "flex md:flex-col items-center gap-3 md:gap-2 p-4 rounded-hig",
+                "flex flex-col items-center gap-2 p-3 md:p-4 rounded-hig",
                 "transition-all duration-hig-fast ease-hig-out",
                 "hover:bg-secondary/40 focus-ring press-feedback",
                 "min-h-[var(--touch-target-comfortable)]",
@@ -173,16 +172,16 @@ export function HabitTrackerCard({
             >
               {/* Icon */}
               <div className={cn(
-                "w-12 h-12 md:w-14 md:h-14 rounded-hig flex items-center justify-center shrink-0",
+                "w-12 h-12 rounded-hig flex items-center justify-center shrink-0",
                 "transition-shadow duration-hig-fast",
                 item.bgColor,
                 item.status === 'recorded' && "elevation-1"
               )}>
-                <Icon className={cn("w-6 h-6 md:w-7 md:h-7", item.color)} aria-hidden="true" />
+                <Icon className={cn("w-6 h-6", item.color)} aria-hidden="true" />
               </div>
 
               {/* Label & Value */}
-              <div className="flex-1 min-w-0 text-left md:text-center">
+              <div className="text-center w-full">
                 <p className={cn(
                   "font-medium text-hig-sm transition-colors duration-hig-fast",
                   item.status === 'recorded' ? "text-foreground" : "text-muted-foreground"
@@ -190,27 +189,24 @@ export function HabitTrackerCard({
                   {item.label}
                 </p>
                 <p className={cn(
-                  "text-hig-xs mt-0.5",
+                  "text-hig-xs mt-0.5 truncate",
                   item.status === 'recorded' ? "text-muted-foreground" : "text-muted-foreground/60"
                 )}>
                   {item.value || <><span className="action-text-adaptive" /> para registrar</>}
                 </p>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-1">
-                {onViewHistory && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onViewHistory(item.id as WellnessHistoryType); }}
-                    className="p-2 rounded-hig hover:bg-secondary/60 focus-ring"
-                    aria-label={`Ver historial de ${item.label}`}
-                  >
-                    <History className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                  </button>
-                )}
-                <ChevronRight className="w-5 h-5 text-muted-foreground/50 md:hidden" aria-hidden="true" />
-              </div>
+              {/* History button */}
+              {onViewHistory && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onViewHistory(item.id as WellnessHistoryType); }}
+                  className="p-1.5 rounded-full hover:bg-secondary/60 focus-ring"
+                  aria-label={`Ver historial de ${item.label}`}
+                >
+                  <History className="w-3.5 h-3.5 text-muted-foreground/70" aria-hidden="true" />
+                </button>
+              )}
             </button>
           );
         })}
