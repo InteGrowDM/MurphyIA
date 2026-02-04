@@ -181,6 +181,84 @@ export interface DizzinessRecord {
   notes?: string;
 }
 
+// Blood Pressure types
+export type BloodPressurePosition = 'sitting' | 'standing' | 'lying';
+export type BloodPressureArm = 'left' | 'right';
+
+export type BloodPressureCategory = 
+  | 'hypotension'    // < 90/60
+  | 'normal'         // < 120/80
+  | 'elevated'       // 120-129 / < 80
+  | 'hypertension1'  // 130-139 / 80-89
+  | 'hypertension2'  // 140-179 / 90-119
+  | 'crisis';        // >= 180/120
+
+export interface BloodPressureRecord {
+  id: string;
+  patient_id: string;
+  systolic: number;
+  diastolic: number;
+  pulse?: number;
+  position?: BloodPressurePosition;
+  arm?: BloodPressureArm;
+  recorded_at: string;
+  notes?: string;
+}
+
+export const BLOOD_PRESSURE_LABELS: Record<BloodPressureCategory, string> = {
+  hypotension: 'Hipotensión',
+  normal: 'Normal',
+  elevated: 'Elevada',
+  hypertension1: 'Hipertensión Grado 1',
+  hypertension2: 'Hipertensión Grado 2',
+  crisis: 'Crisis Hipertensiva',
+};
+
+export const BLOOD_PRESSURE_COLORS: Record<BloodPressureCategory, string> = {
+  hypotension: 'text-blue-400',
+  normal: 'text-success',
+  elevated: 'text-warning',
+  hypertension1: 'text-orange-400',
+  hypertension2: 'text-destructive',
+  crisis: 'text-red-600',
+};
+
+export const BLOOD_PRESSURE_BG_COLORS: Record<BloodPressureCategory, string> = {
+  hypotension: 'bg-blue-500/20',
+  normal: 'bg-success/20',
+  elevated: 'bg-warning/20',
+  hypertension1: 'bg-orange-500/20',
+  hypertension2: 'bg-destructive/20',
+  crisis: 'bg-red-600/20',
+};
+
+export const POSITION_LABELS: Record<BloodPressurePosition, string> = {
+  sitting: 'Sentado',
+  standing: 'De pie',
+  lying: 'Acostado',
+};
+
+export const ARM_LABELS: Record<BloodPressureArm, string> = {
+  left: 'Brazo izquierdo',
+  right: 'Brazo derecho',
+};
+
+// Helper function to get blood pressure category based on American Heart Association guidelines
+export function getBloodPressureCategory(systolic: number, diastolic: number): BloodPressureCategory {
+  // Crisis takes priority
+  if (systolic >= 180 || diastolic >= 120) return 'crisis';
+  // Hypotension
+  if (systolic < 90 || diastolic < 60) return 'hypotension';
+  // Hypertension Stage 2
+  if (systolic >= 140 || diastolic >= 90) return 'hypertension2';
+  // Hypertension Stage 1
+  if (systolic >= 130 || diastolic >= 80) return 'hypertension1';
+  // Elevated (only systolic elevated, diastolic must be < 80)
+  if (systolic >= 120 && diastolic < 80) return 'elevated';
+  // Normal
+  return 'normal';
+}
+
 export interface Patient {
   id: string;
   name: string;

@@ -5,18 +5,19 @@ import { PatientCard } from '@/components/dashboard/PatientCard';
 import { HabitTrackerCard } from '@/components/dashboard/HabitTrackerCard';
 import { XPDonut } from '@/components/dashboard/XPDonut';
 import { GlucoseChart } from '@/components/dashboard/GlucoseChart';
-import { WellnessHistorySheet } from '@/components/wellness/WellnessHistorySheet';
+import { WellnessHistorySheet, WellnessHistoryType } from '@/components/wellness/WellnessHistorySheet';
 
 import { DailyLogInputDialog } from '@/components/daily-log/DailyLogInputDialog';
 import { useXPCalculation } from '@/hooks/useXPCalculation';
 import { useWellnessLog } from '@/hooks/useWellnessLog';
 import { useGlucoseLog } from '@/hooks/useGlucoseLog';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, Patient, DizzinessSymptom, Glucometry } from '@/types/diabetes';
+import { UserRole, Patient, DizzinessSymptom, Glucometry, BloodPressurePosition, BloodPressureArm } from '@/types/diabetes';
 import mockData from '@/data/mockPatients.json';
 import { Activity, TrendingUp, Flame, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isSameDay } from 'date-fns';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const location = useLocation();
@@ -29,19 +30,23 @@ export default function Dashboard() {
   const [sleepDialogOpen, setSleepDialogOpen] = useState(false);
   const [stressDialogOpen, setStressDialogOpen] = useState(false);
   const [dizzinessDialogOpen, setDizzinessDialogOpen] = useState(false);
-  const [historyType, setHistoryType] = useState<'sleep' | 'stress' | 'dizziness' | null>(null);
+  const [bloodPressureDialogOpen, setBloodPressureDialogOpen] = useState(false);
+  const [historyType, setHistoryType] = useState<WellnessHistoryType | null>(null);
 
   // Wellness data from Supabase
   const { 
     todaySleep, 
     todayStress, 
-    todayDizziness, 
+    todayDizziness,
+    todayBloodPressure,
     saveSleep, 
     saveStress, 
     saveDizziness,
+    saveBloodPressure,
     sleepHistory,
     stressHistory,
-    dizzinessHistory
+    dizzinessHistory,
+    bloodPressureHistory
   } = useWellnessLog(patientProfile?.id);
 
   // Real glucose data from Supabase (only when authenticated)
@@ -126,6 +131,18 @@ export default function Dashboard() {
     saveDizziness({ severity, symptoms, notes });
   };
 
+  const handleSaveBloodPressure = (data: { 
+    systolic: number; 
+    diastolic: number; 
+    pulse?: number; 
+    position?: BloodPressurePosition; 
+    arm?: BloodPressureArm;
+    notes?: string;
+  }) => {
+    saveBloodPressure(data);
+    toast.success('Tensión arterial registrada');
+  };
+
   return (
     <DashboardLayout userRole={userRole} userName={userName}>
       {/* Page Header */}
@@ -173,9 +190,11 @@ export default function Dashboard() {
           sleepData={todaySleep}
           stressData={todayStress}
           dizzinessData={todayDizziness}
+          bloodPressureData={todayBloodPressure}
           onSleepClick={() => setSleepDialogOpen(true)}
           onStressClick={() => setStressDialogOpen(true)}
           onDizzinessClick={() => setDizzinessDialogOpen(true)}
+          onBloodPressureClick={() => setBloodPressureDialogOpen(true)}
           onViewHistory={(type) => setHistoryType(type)}
         />
       </section>
@@ -233,6 +252,13 @@ export default function Dashboard() {
         onSave={handleSaveDizziness}
       />
 
+      <DailyLogInputDialog
+        open={bloodPressureDialogOpen}
+        onOpenChange={setBloodPressureDialogOpen}
+        type="blood_pressure"
+        onSave={handleSaveBloodPressure}
+      />
+
       {/* Wellness History Sheet */}
       <WellnessHistorySheet
         open={historyType !== null}
@@ -241,6 +267,7 @@ export default function Dashboard() {
         data={
           historyType === 'sleep' ? sleepHistory :
           historyType === 'stress' ? stressHistory :
+          historyType === 'blood_pressure' ? bloodPressureHistory :
           dizzinessHistory
         }
       />

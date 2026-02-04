@@ -12,6 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { 
   AlertTriangle, 
@@ -20,7 +27,8 @@ import {
   Syringe, 
   Moon, 
   Brain,
-  Sparkles
+  Sparkles,
+  HeartPulse
 } from 'lucide-react';
 import { 
   GlucometryType, 
@@ -30,12 +38,20 @@ import {
   DizzinessSymptom,
   DIZZINESS_SYMPTOMS_LABELS,
   DIZZINESS_SEVERITY_LABELS,
-  DIZZINESS_SEVERITY_EMOJIS
+  DIZZINESS_SEVERITY_EMOJIS,
+  BloodPressurePosition,
+  BloodPressureArm,
+  POSITION_LABELS,
+  ARM_LABELS,
+  getBloodPressureCategory,
+  BLOOD_PRESSURE_LABELS,
+  BLOOD_PRESSURE_COLORS,
+  BLOOD_PRESSURE_BG_COLORS
 } from '@/types/diabetes';
 
 // ==================== TYPES ====================
 
-export type DailyLogType = 'glucose' | 'insulin' | 'sleep' | 'stress' | 'dizziness';
+export type DailyLogType = 'glucose' | 'insulin' | 'sleep' | 'stress' | 'dizziness' | 'blood_pressure';
 export type InsulinVariant = 'rapid' | 'basal';
 
 interface BaseDialogProps {
@@ -77,12 +93,27 @@ interface DizzinessDialogProps extends BaseDialogProps {
   onSave: (severity: number, symptoms?: DizzinessSymptom[], notes?: string) => void;
 }
 
+interface BloodPressureDialogProps extends BaseDialogProps {
+  type: 'blood_pressure';
+  initialSystolic?: number;
+  initialDiastolic?: number;
+  onSave: (data: {
+    systolic: number;
+    diastolic: number;
+    pulse?: number;
+    position?: BloodPressurePosition;
+    arm?: BloodPressureArm;
+    notes?: string;
+  }) => void;
+}
+
 export type DailyLogInputDialogProps = 
   | GlucoseDialogProps 
   | InsulinDialogProps 
   | SleepDialogProps 
   | StressDialogProps
-  | DizzinessDialogProps;
+  | DizzinessDialogProps
+  | BloodPressureDialogProps;
 
 // ==================== CONSTANTS ====================
 
@@ -100,6 +131,7 @@ const DIALOG_CONFIG = {
   sleep: { icon: Moon, color: 'text-indigo-400' },
   stress: { icon: Brain, color: 'text-rose-400' },
   dizziness: { icon: Sparkles, color: 'text-pink-400' },
+  blood_pressure: { icon: HeartPulse, color: 'text-red-400' },
 };
 
 // ==================== COMPONENT ====================
@@ -117,6 +149,8 @@ export function DailyLogInputDialog(props: DailyLogInputDialogProps) {
       return <StressContent {...props} />;
     case 'dizziness':
       return <DizzinessContent {...props} />;
+    case 'blood_pressure':
+      return <BloodPressureContent {...props} />;
   }
 }
 
@@ -752,6 +786,241 @@ function DizzinessContent({ open, onOpenChange, initialSeverity, initialSymptoms
           </Button>
           <Button 
             onClick={handleSubmit} 
+            className="w-full sm:w-auto min-h-[44px]"
+          >
+            Guardar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ==================== BLOOD PRESSURE VARIANT ====================
+
+function BloodPressureContent({ open, onOpenChange, initialSystolic, initialDiastolic, onSave }: BloodPressureDialogProps) {
+  const [systolic, setSystolic] = useState<string>(initialSystolic?.toString() || '');
+  const [diastolic, setDiastolic] = useState<string>(initialDiastolic?.toString() || '');
+  const [pulse, setPulse] = useState<string>('');
+  const [position, setPosition] = useState<BloodPressurePosition | undefined>(undefined);
+  const [arm, setArm] = useState<BloodPressureArm | undefined>(undefined);
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const systolicRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setSystolic(initialSystolic?.toString() || '');
+      setDiastolic(initialDiastolic?.toString() || '');
+      setPulse('');
+      setPosition(undefined);
+      setArm(undefined);
+      setNotes('');
+      setError(null);
+      setTimeout(() => systolicRef.current?.focus(), 100);
+    }
+  }, [open, initialSystolic, initialDiastolic]);
+
+  const systolicNum = parseInt(systolic, 10);
+  const diastolicNum = parseInt(diastolic, 10);
+  const pulseNum = pulse ? parseInt(pulse, 10) : undefined;
+  
+  const isSystolicValid = !isNaN(systolicNum) && systolicNum >= 60 && systolicNum <= 250;
+  const isDiastolicValid = !isNaN(diastolicNum) && diastolicNum >= 40 && diastolicNum <= 150;
+  const isValid = isSystolicValid && isDiastolicValid && systolicNum > diastolicNum;
+  
+  const category = isValid ? getBloodPressureCategory(systolicNum, diastolicNum) : null;
+
+  const handleSubmit = () => {
+    if (!systolic.trim() || !diastolic.trim()) {
+      setError('Ingresa ambos valores');
+      return;
+    }
+    if (!isSystolicValid) {
+      setError('La sístole debe estar entre 60 y 250 mmHg');
+      return;
+    }
+    if (!isDiastolicValid) {
+      setError('La diástole debe estar entre 40 y 150 mmHg');
+      return;
+    }
+    if (systolicNum <= diastolicNum) {
+      setError('La sístole debe ser mayor que la diástole');
+      return;
+    }
+    
+    onSave({
+      systolic: systolicNum,
+      diastolic: diastolicNum,
+      pulse: pulseNum,
+      position,
+      arm,
+      notes: notes.trim() || undefined,
+    });
+    onOpenChange(false);
+  };
+
+  const Icon = DIALOG_CONFIG.blood_pressure.icon;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[400px] bg-card border-border/50">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Icon className={cn("w-5 h-5", DIALOG_CONFIG.blood_pressure.color)} />
+            Registrar Tensión Arterial
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          {/* Blood pressure inputs */}
+          <div className="space-y-3">
+            <Label className="text-muted-foreground text-sm">Presión arterial</Label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Label htmlFor="bp-systolic" className="text-xs text-muted-foreground mb-1 block">Sístole</Label>
+                <Input
+                  ref={systolicRef}
+                  id="bp-systolic"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="120"
+                  value={systolic}
+                  onChange={(e) => {
+                    setSystolic(e.target.value);
+                    setError(null);
+                  }}
+                  className={cn(
+                    "text-xl font-bold text-center h-14",
+                    error ? "border-destructive" : ""
+                  )}
+                  min={60}
+                  max={250}
+                />
+              </div>
+              <span className="text-2xl text-muted-foreground font-light pt-5">/</span>
+              <div className="flex-1">
+                <Label htmlFor="bp-diastolic" className="text-xs text-muted-foreground mb-1 block">Diástole</Label>
+                <Input
+                  id="bp-diastolic"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="80"
+                  value={diastolic}
+                  onChange={(e) => {
+                    setDiastolic(e.target.value);
+                    setError(null);
+                  }}
+                  className={cn(
+                    "text-xl font-bold text-center h-14",
+                    error ? "border-destructive" : ""
+                  )}
+                  min={40}
+                  max={150}
+                />
+              </div>
+              <span className="text-sm text-muted-foreground pt-5">mmHg</span>
+            </div>
+
+            {/* Category indicator */}
+            {isValid && category && (
+              <div className={cn(
+                "flex items-center justify-center gap-2 p-2 rounded-lg",
+                BLOOD_PRESSURE_BG_COLORS[category]
+              )}>
+                <span className={cn("text-sm font-medium", BLOOD_PRESSURE_COLORS[category])}>
+                  {BLOOD_PRESSURE_LABELS[category]}
+                </span>
+              </div>
+            )}
+
+            {error && (
+              <p className="text-xs text-destructive text-center" role="alert">{error}</p>
+            )}
+          </div>
+
+          {/* Pulse input (optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="bp-pulse" className="text-muted-foreground text-sm">
+              Pulso (opcional)
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="bp-pulse"
+                type="number"
+                inputMode="numeric"
+                placeholder="72"
+                value={pulse}
+                onChange={(e) => setPulse(e.target.value)}
+                className="text-center h-12"
+                min={40}
+                max={200}
+              />
+              <span className="text-sm text-muted-foreground">bpm</span>
+            </div>
+          </div>
+
+          {/* Position and arm selectors */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-sm">Posición</Label>
+              <Select value={position} onValueChange={(v) => setPosition(v as BloodPressurePosition)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.entries(POSITION_LABELS) as [BloodPressurePosition, string][]).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-sm">Brazo</Label>
+              <Select value={arm} onValueChange={(v) => setArm(v as BloodPressureArm)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.entries(ARM_LABELS) as [BloodPressureArm, string][]).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="bp-notes" className="text-muted-foreground text-sm">
+              Notas (opcional)
+            </Label>
+            <Textarea
+              id="bp-notes"
+              placeholder="Ej: Después de descansar 5 min..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="resize-none h-14 text-sm"
+              maxLength={200}
+            />
+          </div>
+
+          <div className="text-xs text-muted-foreground/80 pt-2 border-t border-border/30">
+            <p>💡 Mide en reposo, después de 5 min sentado</p>
+          </div>
+        </div>
+
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            className="w-full sm:w-auto min-h-[44px]"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={!systolic.trim() || !diastolic.trim()}
             className="w-full sm:w-auto min-h-[44px]"
           >
             Guardar
