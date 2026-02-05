@@ -1,8 +1,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Moon, Brain, Sparkles, HeartPulse } from 'lucide-react';
+import { Brain, Sparkles, HeartPulse } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { SleepHistorySheet } from './SleepHistorySheet';
 
 export type WellnessHistoryType = 'sleep' | 'stress' | 'dizziness' | 'blood_pressure';
 
@@ -14,17 +15,20 @@ interface WellnessHistorySheetProps {
 }
 
 const CONFIG = {
-  sleep: { icon: Moon, title: 'Historial de Sueño', unit: 'horas' },
   stress: { icon: Brain, title: 'Historial de Estrés', unit: '/10' },
   dizziness: { icon: Sparkles, title: 'Historial de Mareos', unit: '/5' },
   blood_pressure: { icon: HeartPulse, title: 'Historial de Tensión', unit: 'mmHg' },
 };
 
 export function WellnessHistorySheet({ open, onOpenChange, type, data }: WellnessHistorySheetProps) {
+  // Delegate to specialized component for sleep
+  if (type === 'sleep') {
+    return <SleepHistorySheet open={open} onOpenChange={onOpenChange} data={data} />;
+  }
+
   const { icon: Icon, title, unit } = CONFIG[type];
   
   const getValue = (record: any): string | number => {
-    if (type === 'sleep') return record.hours;
     if (type === 'stress') return record.level;
     if (type === 'dizziness') return record.severity;
     if (type === 'blood_pressure') return `${record.systolic}/${record.diastolic}`;
@@ -32,7 +36,6 @@ export function WellnessHistorySheet({ open, onOpenChange, type, data }: Wellnes
   };
 
   const getDate = (record: any) => {
-    if (type === 'sleep') return record.date;
     return record.recorded_at;
   };
 
