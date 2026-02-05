@@ -1,99 +1,182 @@
 
-## Plan: Optimizar Layout Mobile del HabitTrackerCard
 
-### Problema Detectado
+## Plan: Mejorar Vista del Historial de Sueño
 
-En la vista mobile, los 4 items de bienestar (Sueño, Estrés, Mareos, Tensión) muestran superposición visual entre:
-- El botón de historial (icono de reloj)
-- El texto "Toca para registrar"
-- El chevron de navegación
+### Problema Actual
 
-Esto ocurre porque el grid `grid-cols-2` en mobile reduce el ancho disponible por celda, y el layout horizontal actual no se adapta correctamente.
+La vista de historial de sueño es muy básica:
+- Solo muestra una lista simple con fecha y horas
+- No muestra la calidad del sueño (dato disponible en la base de datos)
+- No hay visualización gráfica de tendencias
+- Sin estadísticas adicionales como mejor noche, peor noche, etc.
 
 ---
 
 ### Solución Propuesta
 
-Cambiar el layout interno de cada item para que en mobile sea **vertical (columna)** en lugar de horizontal, similar a como ya funciona en desktop.
+Crear un componente especializado `SleepHistorySheet` con visualización enriquecida que incluya:
+
+1. **Gráfico de barras de horas dormidas** (últimos 7-14 días)
+2. **Indicador visual de calidad** por cada registro
+3. **Estadísticas adicionales** (mejor noche, peor noche, días bajo 6h)
+4. **Lista detallada** con horas + calidad combinadas
 
 ---
 
-### Cambios en HabitTrackerCard.tsx
+### Diseño Visual
 
-**1. Modificar el layout del botón de cada item**
-
-Cambiar de:
-```tsx
-className="flex md:flex-col items-center gap-3 md:gap-2 p-4 rounded-hig"
 ```
-
-A layout vertical en ambos breakpoints:
-```tsx
-className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-hig"
+┌─────────────────────────────────────────┐
+│  🌙 Historial de Sueño                  │
+├─────────────────────────────────────────┤
+│  ┌─────────────────────────────────┐    │
+│  │     Gráfico de barras           │    │
+│  │     ██  ██████  ████  ████████  │    │
+│  │     Lu  Ma  Mi  Ju  Vi  Sa  Do  │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
+│  │  7.2h   │ │   8/10  │ │  3 días │   │
+│  │Promedio │ │ Calidad │ │ <6h ⚠️  │   │
+│  └─────────┘ └─────────┘ └─────────┘   │
+│                                         │
+│  Últimos registros                      │
+│  ┌─────────────────────────────────┐    │
+│  │ 04 Feb  │  8h  │ ██████████ 9/10│    │
+│  │ 03 Feb  │  6h  │ ████████░░ 7/10│    │
+│  │ 02 Feb  │  5h  │ █████░░░░░ 5/10│    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
 ```
-
-**2. Reorganizar la estructura interna**
-
-Layout actual (problemático en mobile):
-```
-┌───────────────────────────────────┐
-│ [Icon] [Label+Value] [History] > │  ← Todo en línea horizontal
-└───────────────────────────────────┘
-```
-
-Layout propuesto (consistente mobile/desktop):
-```
-┌─────────────────┐
-│      [Icon]     │
-│      Label      │
-│  Toca/120/80    │
-│   [History]     │  ← Botón debajo, integrado
-└─────────────────┘
-```
-
-**3. Mover botón de historial dentro del flujo vertical**
-
-- Remover el `ChevronRight` en mobile (no necesario en layout vertical)
-- Posicionar el botón de historial debajo del texto de valor
-- Hacer el botón más compacto con tamaño reducido
-
-**4. Ajustar textos centrados**
-
-- Cambiar `text-left md:text-center` a `text-center` siempre
-- Reducir padding en mobile para mejor aprovechamiento del espacio
 
 ---
 
-### Código Específico
+### Fase 1: Crear Componente SleepHistorySheet
+
+**Nuevo archivo: `src/components/wellness/SleepHistorySheet.tsx`**
+
+Componente especializado con:
+
+```text
+// Estadísticas calculadas
+- Promedio de horas (últimos 30 días)
+- Promedio de calidad (1-10)
+- Días con menos de 6h (indicador de alerta)
+- Mejor noche (más horas + calidad)
+- Peor noche (menos horas + calidad baja)
+
+// Mini gráfico de barras (últimos 7 días)
+- Barras verticales representando horas
+- Color según calidad:
+  - Excelente (8-10): verde/success
+  - Bueno (6-7): azul/primary  
+  - Regular (4-5): amarillo/warning
+  - Malo (1-3): rojo/destructive
+
+// Lista detallada
+- Fecha formateada
+- Horas dormidas
+- Barra visual de calidad (10 segmentos)
+- Etiqueta de calidad (Malo/Regular/Bueno/Excelente)
+```
+
+---
+
+### Fase 2: Refactorizar WellnessHistorySheet
+
+**Archivo: `src/components/wellness/WellnessHistorySheet.tsx`**
+
+Cambios:
+- Renderizar `SleepHistorySheet` cuando `type === 'sleep'`
+- Mantener la vista genérica para stress, dizziness, blood_pressure
 
 ```tsx
-// Estructura del item actualizada
-<button className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-hig ...">
-  {/* Icon - siempre centrado arriba */}
-  <div className="w-12 h-12 rounded-hig flex items-center justify-center shrink-0 ...">
-    <Icon className="w-6 h-6" />
-  </div>
+// Detección de tipo especializado
+if (type === 'sleep') {
+  return <SleepHistorySheet open={open} onOpenChange={onOpenChange} data={data} />;
+}
 
-  {/* Label & Value - centrado */}
-  <div className="text-center w-full">
-    <p className="font-medium text-hig-sm">{item.label}</p>
-    <p className="text-hig-xs mt-0.5 truncate">
-      {item.value || <><span className="action-text-adaptive" /> para registrar</>}
-    </p>
-  </div>
-
-  {/* History button - abajo, compacto */}
-  {onViewHistory && (
-    <button
-      onClick={(e) => { e.stopPropagation(); onViewHistory(...); }}
-      className="p-1.5 rounded-full hover:bg-secondary/60 focus-ring"
-      aria-label={`Ver historial de ${item.label}`}
-    >
-      <History className="w-3.5 h-3.5 text-muted-foreground/70" />
-    </button>
-  )}
-</button>
+// Resto de tipos usan la vista genérica actual
+return <GenericWellnessHistorySheet ... />;
 ```
+
+---
+
+### Fase 3: Componentes Visuales
+
+**Mini Chart de Barras (últimos 7 días)**
+
+```tsx
+// Componente simple sin Recharts para mantener ligereza
+<div className="flex items-end justify-between gap-1 h-24">
+  {last7Days.map(day => (
+    <div key={day.date} className="flex flex-col items-center gap-1 flex-1">
+      <div 
+        className="w-full rounded-t-sm transition-all"
+        style={{ 
+          height: `${(day.hours / 12) * 100}%`,
+          backgroundColor: getQualityColor(day.quality)
+        }}
+      />
+      <span className="text-xs text-muted-foreground">{day.dayLabel}</span>
+    </div>
+  ))}
+</div>
+```
+
+**Barra de Calidad por Registro**
+
+```tsx
+<div className="flex gap-0.5">
+  {[...Array(10)].map((_, i) => (
+    <div 
+      key={i}
+      className={cn(
+        "w-2 h-3 rounded-sm",
+        i < quality ? getQualityColor(quality) : "bg-muted/30"
+      )}
+    />
+  ))}
+</div>
+```
+
+---
+
+### Fase 4: Helpers y Constantes
+
+**Constantes de calidad de sueño:**
+
+```tsx
+const SLEEP_QUALITY_LABELS = {
+  excellent: 'Excelente',  // 8-10
+  good: 'Bueno',           // 6-7
+  fair: 'Regular',         // 4-5
+  poor: 'Malo',            // 1-3
+};
+
+const SLEEP_QUALITY_COLORS = {
+  excellent: 'bg-success text-success',
+  good: 'bg-primary text-primary',
+  fair: 'bg-warning text-warning',
+  poor: 'bg-destructive text-destructive',
+};
+
+function getSleepQualityCategory(quality: number) {
+  if (quality >= 8) return 'excellent';
+  if (quality >= 6) return 'good';
+  if (quality >= 4) return 'fair';
+  return 'poor';
+}
+```
+
+---
+
+### Resumen de Cambios
+
+| Archivo | Tipo de Cambio |
+|---------|----------------|
+| `src/components/wellness/SleepHistorySheet.tsx` | **Crear** - Componente especializado |
+| `src/components/wellness/WellnessHistorySheet.tsx` | Modificar - Delegar a especializado cuando type='sleep' |
 
 ---
 
@@ -101,43 +184,18 @@ Layout propuesto (consistente mobile/desktop):
 
 | Aspecto | Antes | Después |
 |---------|-------|---------|
-| Layout mobile | Horizontal (conflictos) | Vertical (consistente) |
-| Visibilidad texto | Truncado/superpuesto | Completo y centrado |
-| Botón historial | Superpuesto | Integrado debajo |
-| Consistencia | Diferente mobile/desktop | Mismo en ambos |
-| Touch target | Conflictos de tap | Áreas claras |
+| Datos mostrados | Solo horas | Horas + Calidad visual |
+| Visualización | Lista simple | Gráfico + Lista enriquecida |
+| Estadísticas | Solo promedio | Promedio, alertas, tendencia |
+| Contexto | Mínimo | Indicadores de calidad codificados por color |
+| UX | Básica | Informativa y accionable |
 
 ---
 
-### Archivos a Modificar
+### Notas Técnicas
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/components/dashboard/HabitTrackerCard.tsx` | Reestructurar layout de items a vertical |
+1. **No requiere Recharts adicional** - El mini gráfico usa divs con CSS para mantener el bundle ligero
+2. **Responsive** - Diseño adaptable a mobile y desktop
+3. **Accesibilidad** - Colores con suficiente contraste, aria-labels en elementos interactivos
+4. **Performance** - Cálculos con useMemo para evitar re-renders innecesarios
 
----
-
-### Diseño Visual Final (Mobile)
-
-```
-┌─────────────────┬─────────────────┐
-│       🌙        │       🧠        │
-│     Sueño       │     Estrés      │
-│  Toca registrar │  Toca registrar │
-│      [🕐]       │      [🕐]       │
-├─────────────────┼─────────────────┤
-│       ✨        │       ❤️        │
-│     Mareos      │     Tensión     │
-│  Toca registrar │  Toca registrar │
-│      [🕐]       │      [🕐]       │
-└─────────────────┴─────────────────┘
-```
-
----
-
-### Nota Técnica
-
-Se elimina el `ChevronRight` que solo aparecía en mobile (`md:hidden`) ya que:
-1. Era redundante con el layout vertical
-2. Causaba confusión visual con el botón de historial
-3. El botón completo ya es clickeable para registrar
