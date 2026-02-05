@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Moon, AlertTriangle, TrendingUp, Star } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Moon, AlertTriangle, TrendingUp, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameWeek, addWeeks, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -39,9 +40,23 @@ function getQualityBgClass(quality: number): string {
 }
 
 export function SleepHistorySheet({ open, onOpenChange, data }: SleepHistorySheetProps) {
-  // Calculate statistics
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+  const isCurrentWeek = isSameWeek(selectedDate, new Date(), { weekStartsOn: 1 });
+
+  // Filter data for selected week
+  const weekData = useMemo(() => {
+    return data.filter(record => {
+      const recordDate = new Date(record.date);
+      return recordDate >= weekStart && recordDate <= weekEnd;
+    });
+  }, [data, weekStart, weekEnd]);
+
+  // Calculate statistics for selected week
   const stats = useMemo(() => {
-    if (data.length === 0) {
+    if (weekData.length === 0) {
       return {
         avgHours: 0,
         avgQuality: 0,
@@ -51,47 +66,53 @@ export function SleepHistorySheet({ open, onOpenChange, data }: SleepHistoryShee
       };
     }
 
-    const totalHours = data.reduce((sum, r) => sum + Number(r.hours), 0);
-    const totalQuality = data.reduce((sum, r) => sum + r.quality, 0);
-    const shortSleepDays = data.filter(r => Number(r.hours) < 6).length;
+    const totalHours = weekData.reduce((sum, r) => sum + Number(r.hours), 0);
+    const totalQuality = weekData.reduce((sum, r) => sum + r.quality, 0);
+    const shortSleepDays = weekData.filter(r => Number(r.hours) < 6).length;
 
     // Best night = highest hours + quality combined
-    const sortedByScore = [...data].sort((a, b) => {
+    const sortedByScore = [...weekData].sort((a, b) => {
       const scoreA = Number(a.hours) + a.quality;
       const scoreB = Number(b.hours) + b.quality;
       return scoreB - scoreA;
     });
 
     return {
-      avgHours: totalHours / data.length,
-      avgQuality: totalQuality / data.length,
+      avgHours: totalHours / weekData.length,
+      avgQuality: totalQuality / weekData.length,
       shortSleepDays,
       bestNight: sortedByScore[0] || null,
       worstNight: sortedByScore[sortedByScore.length - 1] || null,
     };
-  }, [data]);
+  }, [weekData]);
 
-  // Get last 7 days for chart (fill gaps with null)
-  const last7Days = useMemo(() => {
-    const days: { date: string; dayLabel: string; hours: number | null; quality: number | null }[] = [];
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = subDays(new Date(), i);
+  // Get days for selected week
+  const weekDays = useMemo(() => {
+    return eachDayOfInterval({ start: weekStart, end: weekEnd }).map(date => {
       const dateStr = format(date, 'yyyy-MM-dd');
       const record = data.find(r => r.date === dateStr);
-      
-      days.push({
+      return {
         date: dateStr,
         dayLabel: format(date, 'EEE', { locale: es }).slice(0, 2),
         hours: record ? Number(record.hours) : null,
         quality: record ? record.quality : null,
-      });
+      };
+    });
+  }, [weekStart, weekEnd, data]);
+
+  const handlePrevWeek = () => {
+    setSelectedDate(prev => subWeeks(prev, 1));
+  };
+
+  const handleNextWeek = () => {
+    const nextWeek = addWeeks(selectedDate, 1);
+    if (startOfWeek(nextWeek, { weekStartsOn: 1 }) <= new Date()) {
+      setSelectedDate(nextWeek);
     }
-    
-    return days;
-  }, [data]);
+  };
 
   const avgQualityCategory = getQualityCategory(Math.round(stats.avgQuality));
+  const periodLabel = `${format(weekStart, 'd MMM', { locale: es })} - ${format(weekEnd, 'd MMM yyyy', { locale: es })}`;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -105,11 +126,42 @@ export function SleepHistorySheet({ open, onOpenChange, data }: SleepHistoryShee
 
         <ScrollArea className="h-[calc(100%-60px)]">
           <div className="space-y-6 pb-6">
-            {/* Mini Bar Chart - Last 7 days */}
+            {/* Week Navigation */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevWeek}
+                aria-label="Semana anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              
+              <div className="text-center">
+                <p className="text-sm font-semibold text-foreground capitalize">
+                  {periodLabel}
+                </p>
+                {isCurrentWeek && (
+                  <span className="text-xs text-primary">Esta semana</span>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNextWeek}
+                disabled={isCurrentWeek}
+                aria-label="Semana siguiente"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Mini Bar Chart - Selected week */}
             <div className="p-4 rounded-xl bg-secondary/30">
-              <p className="text-xs text-muted-foreground mb-3 text-center">Últimos 7 días</p>
+              <p className="text-xs text-muted-foreground mb-3 text-center">Horas de sueño</p>
               <div className="flex items-end justify-between gap-1.5 h-24">
-                {last7Days.map((day) => (
+                {weekDays.map((day) => (
                   <div key={day.date} className="flex flex-col items-center gap-1.5 flex-1">
                     {day.hours !== null ? (
                       <div
@@ -155,8 +207,8 @@ export function SleepHistorySheet({ open, onOpenChange, data }: SleepHistoryShee
               </div>
             </div>
 
-            {/* Best & Worst Night */}
-            {(stats.bestNight || stats.worstNight) && data.length > 1 && (
+            {/* Best & Worst Night - Only show with 3+ records */}
+            {(stats.bestNight || stats.worstNight) && weekData.length >= 3 && (
               <div className="grid grid-cols-2 gap-2">
                 {stats.bestNight && (
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
@@ -187,12 +239,12 @@ export function SleepHistorySheet({ open, onOpenChange, data }: SleepHistoryShee
 
             {/* Detailed List */}
             <div>
-              <p className="text-xs text-muted-foreground mb-3">Últimos registros</p>
-              {data.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Sin registros de sueño</p>
+              <p className="text-xs text-muted-foreground mb-3">Registros de esta semana</p>
+              {weekData.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Sin registros esta semana</p>
               ) : (
                 <div className="space-y-2">
-                  {data.slice(0, 14).map((record, i) => {
+                  {weekData.map((record, i) => {
                     const category = getQualityCategory(record.quality);
                     const config = QUALITY_CONFIG[category];
                     
