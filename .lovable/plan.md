@@ -1,182 +1,194 @@
 
 
-## Plan: Mejorar Vista del Historial de Sueño
+## Plan: Agregar Navegación Semanal al Historial de Sueño
 
 ### Problema Actual
 
-La vista de historial de sueño es muy básica:
-- Solo muestra una lista simple con fecha y horas
-- No muestra la calidad del sueño (dato disponible en la base de datos)
-- No hay visualización gráfica de tendencias
-- Sin estadísticas adicionales como mejor noche, peor noche, etc.
+El historial de sueño muestra únicamente los últimos 7 días de forma estática:
+- No hay forma de ver semanas anteriores
+- Las estadísticas son globales (30 días) pero el gráfico solo muestra 7 días fijos
+- Inconsistente con la experiencia de glucometría que permite navegar entre semanas
 
 ---
 
 ### Solución Propuesta
 
-Crear un componente especializado `SleepHistorySheet` con visualización enriquecida que incluya:
-
-1. **Gráfico de barras de horas dormidas** (últimos 7-14 días)
-2. **Indicador visual de calidad** por cada registro
-3. **Estadísticas adicionales** (mejor noche, peor noche, días bajo 6h)
-4. **Lista detallada** con horas + calidad combinadas
+Agregar navegación semanal con botones anterior/siguiente, siguiendo el patrón ya establecido en `WeeklyView.tsx` de glucometría.
 
 ---
 
-### Diseño Visual
+### Diseño Visual Actualizado
 
 ```
 ┌─────────────────────────────────────────┐
 │  🌙 Historial de Sueño                  │
 ├─────────────────────────────────────────┤
+│                                         │
+│  [<]   27 Ene - 2 Feb 2026   [>]       │  ← Nueva navegación
+│           "Esta semana"                 │
+│                                         │
 │  ┌─────────────────────────────────┐    │
-│  │     Gráfico de barras           │    │
-│  │     ██  ██████  ████  ████████  │    │
+│  │     ██  ██████  ████  ████████  │    │  ← Gráfico de la semana seleccionada
 │  │     Lu  Ma  Mi  Ju  Vi  Sa  Do  │    │
 │  └─────────────────────────────────┘    │
 │                                         │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │
-│  │  7.2h   │ │   8/10  │ │  3 días │   │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐   │  ← Stats de la semana seleccionada
+│  │  7.2h   │ │   8/10  │ │  1 día  │   │
 │  │Promedio │ │ Calidad │ │ <6h ⚠️  │   │
 │  └─────────┘ └─────────┘ └─────────┘   │
 │                                         │
-│  Últimos registros                      │
+│  Registros de esta semana               │  ← Lista filtrada por semana
 │  ┌─────────────────────────────────┐    │
-│  │ 04 Feb  │  8h  │ ██████████ 9/10│    │
-│  │ 03 Feb  │  6h  │ ████████░░ 7/10│    │
-│  │ 02 Feb  │  5h  │ █████░░░░░ 5/10│    │
+│  │ 02 Feb  │  8h  │ ██████████ 9/10│    │
+│  │ 01 Feb  │  6h  │ ████████░░ 7/10│    │
 │  └─────────────────────────────────┘    │
 └─────────────────────────────────────────┘
 ```
 
 ---
 
-### Fase 1: Crear Componente SleepHistorySheet
+### Cambios en SleepHistorySheet.tsx
 
-**Nuevo archivo: `src/components/wellness/SleepHistorySheet.tsx`**
-
-Componente especializado con:
-
-```text
-// Estadísticas calculadas
-- Promedio de horas (últimos 30 días)
-- Promedio de calidad (1-10)
-- Días con menos de 6h (indicador de alerta)
-- Mejor noche (más horas + calidad)
-- Peor noche (menos horas + calidad baja)
-
-// Mini gráfico de barras (últimos 7 días)
-- Barras verticales representando horas
-- Color según calidad:
-  - Excelente (8-10): verde/success
-  - Bueno (6-7): azul/primary  
-  - Regular (4-5): amarillo/warning
-  - Malo (1-3): rojo/destructive
-
-// Lista detallada
-- Fecha formateada
-- Horas dormidas
-- Barra visual de calidad (10 segmentos)
-- Etiqueta de calidad (Malo/Regular/Bueno/Excelente)
-```
-
----
-
-### Fase 2: Refactorizar WellnessHistorySheet
-
-**Archivo: `src/components/wellness/WellnessHistorySheet.tsx`**
-
-Cambios:
-- Renderizar `SleepHistorySheet` cuando `type === 'sleep'`
-- Mantener la vista genérica para stress, dizziness, blood_pressure
+**1. Agregar estado para semana seleccionada**
 
 ```tsx
-// Detección de tipo especializado
-if (type === 'sleep') {
-  return <SleepHistorySheet open={open} onOpenChange={onOpenChange} data={data} />;
-}
+const [selectedDate, setSelectedDate] = useState(new Date());
 
-// Resto de tipos usan la vista genérica actual
-return <GenericWellnessHistorySheet ... />;
+// Calcular inicio y fin de semana
+const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
 ```
 
----
-
-### Fase 3: Componentes Visuales
-
-**Mini Chart de Barras (últimos 7 días)**
+**2. Filtrar datos por semana seleccionada**
 
 ```tsx
-// Componente simple sin Recharts para mantener ligereza
-<div className="flex items-end justify-between gap-1 h-24">
-  {last7Days.map(day => (
-    <div key={day.date} className="flex flex-col items-center gap-1 flex-1">
-      <div 
-        className="w-full rounded-t-sm transition-all"
-        style={{ 
-          height: `${(day.hours / 12) * 100}%`,
-          backgroundColor: getQualityColor(day.quality)
-        }}
-      />
-      <span className="text-xs text-muted-foreground">{day.dayLabel}</span>
+const weekData = useMemo(() => {
+  return data.filter(record => {
+    const recordDate = new Date(record.date);
+    return recordDate >= weekStart && recordDate <= weekEnd;
+  });
+}, [data, weekStart, weekEnd]);
+```
+
+**3. Agregar navegación de semana**
+
+```tsx
+// Handlers de navegación
+const handlePrevWeek = () => {
+  setSelectedDate(prev => subWeeks(prev, 1));
+};
+
+const handleNextWeek = () => {
+  const nextWeek = addWeeks(selectedDate, 1);
+  if (startOfWeek(nextWeek, { weekStartsOn: 1 }) <= new Date()) {
+    setSelectedDate(nextWeek);
+  }
+};
+
+const isCurrentWeek = isSameWeek(selectedDate, new Date(), { weekStartsOn: 1 });
+
+// JSX de navegación
+<div className="flex items-center justify-between px-2">
+  <Button variant="ghost" size="icon" onClick={handlePrevWeek}>
+    <ChevronLeft className="w-5 h-5" />
+  </Button>
+  
+  <div className="text-center">
+    <p className="font-medium text-sm">
+      {format(weekStart, 'd MMM', { locale: es })} - {format(weekEnd, 'd MMM yyyy', { locale: es })}
+    </p>
+    {isCurrentWeek && (
+      <span className="text-xs text-primary">Esta semana</span>
+    )}
+  </div>
+
+  <Button 
+    variant="ghost" 
+    size="icon" 
+    onClick={handleNextWeek}
+    disabled={isCurrentWeek}
+  >
+    <ChevronRight className="w-5 h-5" />
+  </Button>
+</div>
+```
+
+**4. Actualizar cálculos de estadísticas**
+
+Las estadísticas se calcularán sobre `weekData` (datos de la semana seleccionada):
+
+```tsx
+const stats = useMemo(() => {
+  if (weekData.length === 0) return { avgHours: 0, avgQuality: 0, shortSleepDays: 0, ... };
+  
+  // Calcular sobre weekData en lugar de data completo
+  const totalHours = weekData.reduce((sum, r) => sum + Number(r.hours), 0);
+  // ...
+}, [weekData]);
+```
+
+**5. Actualizar gráfico de barras**
+
+```tsx
+const weekDays = useMemo(() => {
+  return eachDayOfInterval({ start: weekStart, end: weekEnd }).map(date => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const record = data.find(r => r.date === dateStr);
+    return {
+      date: dateStr,
+      dayLabel: format(date, 'EEE', { locale: es }).slice(0, 2),
+      hours: record ? Number(record.hours) : null,
+      quality: record ? record.quality : null,
+    };
+  });
+}, [weekStart, weekEnd, data]);
+```
+
+**6. Actualizar lista de registros**
+
+```tsx
+<div>
+  <p className="text-xs text-muted-foreground mb-3">
+    Registros de esta semana
+  </p>
+  {weekData.length === 0 ? (
+    <p className="text-center text-muted-foreground py-8">
+      Sin registros esta semana
+    </p>
+  ) : (
+    <div className="space-y-2">
+      {weekData.map((record, i) => (
+        // ... renderizado existente
+      ))}
     </div>
-  ))}
-</div>
-```
-
-**Barra de Calidad por Registro**
-
-```tsx
-<div className="flex gap-0.5">
-  {[...Array(10)].map((_, i) => (
-    <div 
-      key={i}
-      className={cn(
-        "w-2 h-3 rounded-sm",
-        i < quality ? getQualityColor(quality) : "bg-muted/30"
-      )}
-    />
-  ))}
+  )}
 </div>
 ```
 
 ---
 
-### Fase 4: Helpers y Constantes
-
-**Constantes de calidad de sueño:**
+### Nuevas Imports Necesarias
 
 ```tsx
-const SLEEP_QUALITY_LABELS = {
-  excellent: 'Excelente',  // 8-10
-  good: 'Bueno',           // 6-7
-  fair: 'Regular',         // 4-5
-  poor: 'Malo',            // 1-3
-};
-
-const SLEEP_QUALITY_COLORS = {
-  excellent: 'bg-success text-success',
-  good: 'bg-primary text-primary',
-  fair: 'bg-warning text-warning',
-  poor: 'bg-destructive text-destructive',
-};
-
-function getSleepQualityCategory(quality: number) {
-  if (quality >= 8) return 'excellent';
-  if (quality >= 6) return 'good';
-  if (quality >= 4) return 'fair';
-  return 'poor';
-}
+import { 
+  startOfWeek, 
+  endOfWeek, 
+  subWeeks, 
+  addWeeks, 
+  eachDayOfInterval,
+  isSameWeek 
+} from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 ```
 
 ---
 
 ### Resumen de Cambios
 
-| Archivo | Tipo de Cambio |
-|---------|----------------|
-| `src/components/wellness/SleepHistorySheet.tsx` | **Crear** - Componente especializado |
-| `src/components/wellness/WellnessHistorySheet.tsx` | Modificar - Delegar a especializado cuando type='sleep' |
+| Archivo | Cambios |
+|---------|---------|
+| `src/components/wellness/SleepHistorySheet.tsx` | Agregar navegación semanal, filtrar datos por semana, recalcular stats |
 
 ---
 
@@ -184,18 +196,15 @@ function getSleepQualityCategory(quality: number) {
 
 | Aspecto | Antes | Después |
 |---------|-------|---------|
-| Datos mostrados | Solo horas | Horas + Calidad visual |
-| Visualización | Lista simple | Gráfico + Lista enriquecida |
-| Estadísticas | Solo promedio | Promedio, alertas, tendencia |
-| Contexto | Mínimo | Indicadores de calidad codificados por color |
-| UX | Básica | Informativa y accionable |
+| Navegación | Sin navegación | Anterior/Siguiente semana |
+| Período visible | Últimos 7 días fijos | Cualquier semana histórica |
+| Estadísticas | Globales (30 días) | Por semana seleccionada |
+| Consistencia | Diferente a glucometría | Mismo patrón UX |
+| Contexto temporal | Ambiguo | Claro con rango de fechas |
 
 ---
 
-### Notas Técnicas
+### Consideración Adicional
 
-1. **No requiere Recharts adicional** - El mini gráfico usa divs con CSS para mantener el bundle ligero
-2. **Responsive** - Diseño adaptable a mobile y desktop
-3. **Accesibilidad** - Colores con suficiente contraste, aria-labels en elementos interactivos
-4. **Performance** - Cálculos con useMemo para evitar re-renders innecesarios
+Se removerán las tarjetas de "Mejor noche" y "Peor noche" ya que en una vista semanal con pocos registros pierden relevancia. Se pueden mostrar solo cuando hay 3+ registros en la semana seleccionada.
 
